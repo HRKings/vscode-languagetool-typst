@@ -18,3 +18,5 @@
 - This paragraph should be cheecked by LanguageTool.
 
 - This paragraph should be cheecked by LanguageTool.
+
+—  "B-but I'm the mage!". He replied.

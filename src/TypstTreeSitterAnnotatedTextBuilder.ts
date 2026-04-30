@@ -19,6 +19,7 @@ import * as fs from "fs";
 import { Language, Node, Parser } from "web-tree-sitter";
 
 const PROSE_LEAF_TYPES = new Set(["text"]);
+const QUOTE_TYPES = new Set(["quote"]);
 const PARBREAK_TYPES = new Set(["parbreak"]);
 const RECURSE_TYPES = new Set([
   "source_file",
@@ -81,6 +82,11 @@ export class TypstTreeSitterAnnotatedTextBuilder {
       const bulletMatch = slice.match(BULLET_PREFIX_REGEX);
       const proseStart = node.startIndex + (bulletMatch?.[0].length ?? 0);
       this.fillRange(included, proseStart, node.endIndex, true);
+      return;
+    }
+
+    if (QUOTE_TYPES.has(type) && this.isApostropheInWord(text, node)) {
+      this.fillRange(included, node.startIndex, node.endIndex, true);
       return;
     }
 
@@ -167,5 +173,14 @@ export class TypstTreeSitterAnnotatedTextBuilder {
 
   private isWordCharacter(character: string | undefined): boolean {
     return character !== undefined && /[\p{L}\p{N}]/u.test(character);
+  }
+
+  private isApostropheInWord(text: string, node: Node): boolean {
+    const slice = text.slice(node.startIndex, node.endIndex);
+    return (
+      (slice === "'" || slice === "’") &&
+      this.isWordCharacter(text[node.startIndex - 1]) &&
+      this.isWordCharacter(text[node.endIndex])
+    );
   }
 }

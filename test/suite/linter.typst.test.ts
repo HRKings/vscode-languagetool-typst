@@ -116,4 +116,27 @@ suite("Linter Typst Test Suite", () => {
       "Expected interpreted Typst heading text to preserve spacing after numbered prefixes.",
     );
   });
+
+  test("Linter should preserve Typst apostrophes inside words", async () => {
+    const text: string = fs.readFileSync(
+      path.resolve(__dirname, testWorkspace + "/typst/medium.typ"),
+      "utf8",
+    );
+    const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(text);
+    const checkedText = getCheckedText(actual);
+    const interpretedText = getInterpretedText(actual);
+
+    assert.ok(
+      checkedText.includes("B-but I'm the owner!"),
+      "Expected in-word apostrophe to remain checkable prose.",
+    );
+    assert.ok(
+      interpretedText.includes("B-but I'm the owner!"),
+      "Expected interpreted Typst text to preserve in-word apostrophe.",
+    );
+    assert.ok(
+      !interpretedText.includes("B-but I m the owner!"),
+      "Expected interpreted Typst text not to replace in-word apostrophe with a space.",
+    );
+  });
 });
