@@ -184,6 +184,14 @@ export class ConfigurationManager implements Disposable {
     }
   }
 
+  public getConfiguredLanguage(): string {
+    return this.config.get<string>("languageTool.language", "");
+  }
+
+  public getPreferredVariants(): string {
+    return this.config.get<string>("languageTool.preferredVariants", "");
+  }
+
   // Get a list of language Ids that are supported and enabled
   public getLanguageIds(): string[] {
     const supportedLanguageIds = Constants.SUPPORTED_LANGUAGE_IDS;

@@ -78,6 +78,7 @@ export class Linter implements CodeActionProvider {
   private readonly typstBuilder: TypstAnnotatedTextBuilder;
   private timeoutMap: Map<string, NodeJS.Timeout>;
   private ignoreList: IIgnoreItem[] = [];
+  private warnedVariantMismatchUris: Set<string> = new Set<string>();
 
   constructor(configManager: ConfigurationManager) {
     this.configManager = configManager;
@@ -372,6 +373,35 @@ export class Linter implements CodeActionProvider {
     });
   }
 
+  private warnIfVariantMismatch(
+    document: TextDocument,
+    response: ILanguageToolResponse,
+  ): void {
+    if (this.configManager.getConfiguredLanguage() !== "auto") {
+      return;
+    }
+    const detected = response.language?.detectedLanguage?.code || "";
+    if (!/^en(-|$)/i.test(detected)) {
+      return;
+    }
+    const variants = this.configManager.getPreferredVariants();
+    const hasEnVariant = variants
+      .split(",")
+      .map((v) => v.trim().toLowerCase())
+      .some((v) => v.startsWith("en-"));
+    if (hasEnVariant) {
+      return;
+    }
+    const uriKey = document.uri.toString();
+    if (this.warnedVariantMismatchUris.has(uriKey)) {
+      return;
+    }
+    this.warnedVariantMismatchUris.add(uriKey);
+    Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+      `WARN: detected ${detected} but languageToolLinter.languageTool.preferredVariants has no en-* — LanguageTool used its default English variant. Add e.g. en-US to preferredVariants for consistent results. (uri=${uriKey})`,
+    );
+  }
+
   private truncate(text: string, maxLength: number): string {
     if (text.length <= maxLength) {
       return text;
@@ -412,6 +442,7 @@ export class Linter implements CodeActionProvider {
         .then((json: ILanguageToolResponse) => {
           this.statusBarManager.setLtSoftware(json.software);
           this.logLanguageToolResponse(document, json);
+          this.warnIfVariantMismatch(document, json);
           this.suggest(document, json);
         })
         .catch((err) => {
