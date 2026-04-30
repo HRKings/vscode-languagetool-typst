@@ -12,7 +12,7 @@
 #pagebreak()
 
 = Introduction
-Typst is a markup-based [typesetting system tyypo](https://typst.app/ "Typst Official Home") designed to be moore intuitive than LaTeX.
+Typst is a markup-based #link("https://typst.app/")[typesetting system tyypo] designed to be moore intuitive than LaTeX.
 
 == 1. Subtitle with number
 

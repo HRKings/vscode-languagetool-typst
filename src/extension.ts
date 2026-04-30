@@ -14,13 +14,35 @@
  *   limitations under the License.
  */
 
+import * as path from "path";
 import * as vscode from "vscode";
 import { ConfigurationManager } from "./ConfigurationManager";
 import * as Constants from "./Constants";
 import { Linter } from "./Linter";
+import { TypstTreeSitterAnnotatedTextBuilder } from "./TypstTreeSitterAnnotatedTextBuilder";
 
 // Wonder Twin Powers, Activate!
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(
+  context: vscode.ExtensionContext,
+): Promise<void> {
+  if (process.env.LTL_TREE_SITTER !== "0") {
+    const wasmPath = path.join(
+      context.extensionPath,
+      "resources",
+      "tree-sitter-typst.wasm",
+    );
+    try {
+      await TypstTreeSitterAnnotatedTextBuilder.init(wasmPath);
+      Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+        `Tree-sitter Typst initialized from ${wasmPath}`,
+      );
+    } catch (err) {
+      Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+        `Tree-sitter init failed: ${err}`,
+      );
+      throw err;
+    }
+  }
   const configMan: ConfigurationManager = new ConfigurationManager();
   const linter: Linter = new Linter(configMan);
 

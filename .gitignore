@@ -77,3 +77,6 @@ out
 
 # Webpack Directory
 dist/
+
+# Local grammar build scratch (script clones uben0/tree-sitter-typst here)
+build/

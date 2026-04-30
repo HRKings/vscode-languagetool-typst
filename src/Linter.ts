@@ -45,6 +45,13 @@ import {
 } from "./Interfaces";
 import { StatusBarManager } from "./StatusBarManager";
 import { TypstAnnotatedTextBuilder } from "./TypstAnnotatedTextBuilder";
+import { TypstTreeSitterAnnotatedTextBuilder } from "./TypstTreeSitterAnnotatedTextBuilder";
+
+interface ITypstBuilder {
+  build(text: string): Promise<IAnnotatedtext>;
+}
+
+const TREE_SITTER_FLAG = process.env.LTL_TREE_SITTER !== "0";
 
 class LTDiagnostic extends Diagnostic {
   match?: ILanguageToolMatch;
@@ -75,9 +82,10 @@ export class Linter implements CodeActionProvider {
 
   private readonly configManager: ConfigurationManager;
   private readonly statusBarManager: StatusBarManager;
-  private readonly typstBuilder: TypstAnnotatedTextBuilder;
+  private readonly typstBuilder: ITypstBuilder;
   private timeoutMap: Map<string, NodeJS.Timeout>;
   private ignoreList: IIgnoreItem[] = [];
+  private warnedVariantMismatchUris: Set<string> = new Set<string>();
 
   constructor(configManager: ConfigurationManager) {
     this.configManager = configManager;
@@ -86,7 +94,14 @@ export class Linter implements CodeActionProvider {
       Constants.EXTENSION_DISPLAY_NAME,
     );
     this.statusBarManager = new StatusBarManager(configManager);
-    this.typstBuilder = new TypstAnnotatedTextBuilder();
+    this.typstBuilder = TREE_SITTER_FLAG
+      ? new TypstTreeSitterAnnotatedTextBuilder()
+      : new TypstAnnotatedTextBuilder();
+    if (TREE_SITTER_FLAG) {
+      Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+        "TypstTreeSitterAnnotatedTextBuilder selected (LTL_TREE_SITTER=1)",
+      );
+    }
   }
 
   // Provide CodeActions for the given Document and Range
@@ -372,6 +387,35 @@ export class Linter implements CodeActionProvider {
     });
   }
 
+  private warnIfVariantMismatch(
+    document: TextDocument,
+    response: ILanguageToolResponse,
+  ): void {
+    if (this.configManager.getConfiguredLanguage() !== "auto") {
+      return;
+    }
+    const detected = response.language?.detectedLanguage?.code || "";
+    if (!/^en(-|$)/i.test(detected)) {
+      return;
+    }
+    const variants = this.configManager.getPreferredVariants();
+    const hasEnVariant = variants
+      .split(",")
+      .map((v) => v.trim().toLowerCase())
+      .some((v) => v.startsWith("en-"));
+    if (hasEnVariant) {
+      return;
+    }
+    const uriKey = document.uri.toString();
+    if (this.warnedVariantMismatchUris.has(uriKey)) {
+      return;
+    }
+    this.warnedVariantMismatchUris.add(uriKey);
+    Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+      `WARN: detected ${detected} but languageToolLinter.languageTool.preferredVariants has no en-* — LanguageTool used its default English variant. Add e.g. en-US to preferredVariants for consistent results. (uri=${uriKey})`,
+    );
+  }
+
   private truncate(text: string, maxLength: number): string {
     if (text.length <= maxLength) {
       return text;
@@ -412,6 +456,7 @@ export class Linter implements CodeActionProvider {
         .then((json: ILanguageToolResponse) => {
           this.statusBarManager.setLtSoftware(json.software);
           this.logLanguageToolResponse(document, json);
+          this.warnIfVariantMismatch(document, json);
           this.suggest(document, json);
         })
         .catch((err) => {
