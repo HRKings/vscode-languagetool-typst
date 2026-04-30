@@ -352,7 +352,7 @@ export class TypstAnnotatedTextBuilder {
     const previous = text[start - 1];
     const next = text[end];
     if (
-      this.isWordCharacter(previous) &&
+      (this.isWordCharacter(previous) || /[.!?]/.test(previous ?? "")) &&
       this.isWordCharacter(next) &&
       !/\s/.test(previous) &&
       !/\s/.test(next)

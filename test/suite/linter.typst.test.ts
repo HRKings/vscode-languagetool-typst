@@ -25,6 +25,12 @@ suite("Linter Typst Test Suite", () => {
       .join("");
   }
 
+  function getInterpretedText(annotatedText: IAnnotatedtext): string {
+    return annotatedText.annotation
+      .map((annotation) => annotation.text || annotation.interpretAs || "")
+      .join("");
+  }
+
   test("Linter should return annotated text for Typst", async () => {
     const text: string = fs.readFileSync(
       path.resolve(__dirname, testWorkspace + "/typst/basic.typ"),
@@ -60,6 +66,7 @@ suite("Linter Typst Test Suite", () => {
     const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(text);
     const checkedText = getCheckedText(actual);
     const uncheckedText = getUncheckedText(actual);
+    const interpretedText = getInterpretedText(actual);
 
     [
       "typesetting system tyypo",
@@ -91,5 +98,10 @@ suite("Linter Typst Test Suite", () => {
         `Expected Typst markup to include "${expectedMarkup}".`,
       );
     });
+
+    assert.ok(
+      interpretedText.includes("1. Subtitle with number"),
+      "Expected interpreted Typst heading text to preserve spacing after numbered prefixes.",
+    );
   });
 });
