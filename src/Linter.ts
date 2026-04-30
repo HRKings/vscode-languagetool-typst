@@ -49,6 +49,7 @@ import {
   ILanguageToolResponse,
 } from "./Interfaces";
 import { StatusBarManager } from "./StatusBarManager";
+import { TypstAnnotatedTextBuilder } from "./TypstAnnotatedTextBuilder";
 
 class LTDiagnostic extends Diagnostic {
   match?: ILanguageToolMatch;
@@ -81,6 +82,7 @@ export class Linter implements CodeActionProvider {
 
   private readonly configManager: ConfigurationManager;
   private readonly statusBarManager: StatusBarManager;
+  private readonly typstBuilder: TypstAnnotatedTextBuilder;
   private timeoutMap: Map<string, NodeJS.Timeout>;
   private ignoreList: IIgnoreItem[] = [];
 
@@ -92,6 +94,7 @@ export class Linter implements CodeActionProvider {
     );
     this.remarkBuilderOptions.interpretmarkup = this.customMarkdownInterpreter;
     this.statusBarManager = new StatusBarManager(configManager);
+    this.typstBuilder = new TypstAnnotatedTextBuilder();
   }
 
   // Provide CodeActions for the given Document and Range
@@ -238,6 +241,11 @@ export class Linter implements CodeActionProvider {
     return { annotation: [textAnnotation] };
   }
 
+  // Build annotatedtext from Typst
+  public buildAnnotatedTypst(text: string): Promise<IAnnotatedtext> {
+    return this.typstBuilder.build(text);
+  }
+
   // Abstract annotated text builder
   public buildAnnotatedtext(document: TextDocument): IAnnotatedtext {
     let annotatedtext: IAnnotatedtext = { annotation: [] };
@@ -251,6 +259,9 @@ export class Linter implements CodeActionProvider {
       case Constants.LANGUAGE_ID_HTML:
         annotatedtext = this.buildAnnotatedHTML(document.getText());
         break;
+      case Constants.LANGUAGE_ID_TYPST:
+        annotatedtext = { annotation: [] };
+        break;
       default:
         annotatedtext = this.buildAnnotatedPlaintext(document.getText());
         break;
@@ -259,9 +270,12 @@ export class Linter implements CodeActionProvider {
   }
 
   // Perform Lint on Document
-  public lintDocument(document: TextDocument): void {
+  public async lintDocument(document: TextDocument): Promise<void> {
     if (this.configManager.isLanguageSupportedAndEnabled(document)) {
-      if (document.languageId === Constants.LANGUAGE_ID_MARKDOWN) {
+      if (
+        document.languageId === Constants.LANGUAGE_ID_MARKDOWN ||
+        document.languageId === Constants.LANGUAGE_ID_MDX
+      ) {
         this.ignoreList = this.buildIgnoreList(document);
         const annotatedMarkdown: string = JSON.stringify(
           this.buildAnnotatedMarkdown(document.getText()),
@@ -272,6 +286,11 @@ export class Linter implements CodeActionProvider {
           this.buildAnnotatedHTML(document.getText()),
         );
         this.lintAnnotatedText(document, annotatedHTML);
+      } else if (document.languageId === Constants.LANGUAGE_ID_TYPST) {
+        const annotatedTypst: string = JSON.stringify(
+          await this.buildAnnotatedTypst(document.getText()),
+        );
+        this.lintAnnotatedText(document, annotatedTypst);
       } else {
         this.lintDocumentAsPlainText(document);
       }
@@ -294,6 +313,12 @@ export class Linter implements CodeActionProvider {
   ): void {
     this.statusBarManager.setChecking();
     const ltPostDataDict: Record<string, string> = this.getPostDataTemplate();
+    if (document.languageId === Constants.LANGUAGE_ID_TYPST) {
+      ltPostDataDict.disabledRules = this.mergeDisabledRules(
+        ltPostDataDict.disabledRules,
+        Constants.TYPST_DISABLED_RULES,
+      );
+    }
     ltPostDataDict.data = annotatedText;
     this.callLanguageTool(document, ltPostDataDict);
     this.statusBarManager.setIdle();
@@ -368,6 +393,20 @@ export class Linter implements CodeActionProvider {
     return ltPostDataTemplate;
   }
 
+  private mergeDisabledRules(
+    configuredRules: string | undefined,
+    additionalRules: string[],
+  ): string {
+    const rules = new Set(
+      (configuredRules || "")
+        .split(",")
+        .map((rule) => rule.trim())
+        .filter((rule) => rule.length > 0),
+    );
+    additionalRules.forEach((rule) => rules.add(rule));
+    return Array.from(rules).join(",");
+  }
+
   // Call to LanguageTool Service
   private callLanguageTool(
     document: TextDocument,
@@ -423,6 +462,9 @@ export class Linter implements CodeActionProvider {
     matches.forEach((match: ILanguageToolMatch) => {
       const start: Position = document.positionAt(match.offset);
       const end: Position = document.positionAt(match.offset + match.length);
+      if (this.shouldIgnoreTypstMatch(document, start, match)) {
+        return;
+      }
       const ignored: IIgnoreItem[] = this.getIgnoreList(document, start);
       const diagnosticSeverity: DiagnosticSeverity =
         this.configManager.getDiagnosticSeverity();
@@ -474,6 +516,25 @@ export class Linter implements CodeActionProvider {
       }
     });
     this.diagnosticCollection.set(document.uri, diagnostics);
+  }
+
+  private shouldIgnoreTypstMatch(
+    document: TextDocument,
+    start: Position,
+    match: ILanguageToolMatch,
+  ): boolean {
+    if (
+      document.languageId !== Constants.LANGUAGE_ID_TYPST ||
+      match.rule.id !== "ENGLISH_WORD_REPEAT_BEGINNING_RULE"
+    ) {
+      return false;
+    }
+
+    const linePrefix = document.lineAt(start.line).text.slice(
+      0,
+      start.character,
+    );
+    return /^\s*[-+]\s*$/.test(linePrefix);
   }
 
   /**

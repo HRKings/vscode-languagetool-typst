@@ -3,8 +3,8 @@
 [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/davidlday/vscode-languagetool-linter/nodejs-ci.yml)](https://github.com/davidlday/vscode-languagetool-linter/actions/workflows/nodejs-ci.yml)
 
 Grammar, Style and Spell Checking in VS Code via
-[LanguageTool](https://languagetool.org). Support Markdown, MDX, HTML, and plain
-text files.
+[LanguageTool](https://languagetool.org). Support Markdown, MDX, HTML, Typst,
+and plain text files.
 
 In memory of [Adam Voss](https://github.com/adamvoss), original creator of the
 [LanguageTool for Visual Studio Code](https://github.com/languagetool-language-server/vscode-languagetool)
@@ -14,7 +14,7 @@ extension.
 
 - Issue highlighting with hover description.
 - Replacement suggestions.
-- Checks plain text, Markdown, MDX, and HTML.
+- Checks plain text, Markdown, MDX, HTML, and Typst.
 - Smart format on type to replace quotes with smart quotes, multiple consecutive
   hyphens with em or en-dash, and three consecutive periods with ellipses.
   - Make sure 'Editor: Format On Type' is enabled or this feature won't work.

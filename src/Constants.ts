@@ -27,11 +27,13 @@ export const EXTENSION_DIAGNOSTIC_SOURCE = "LanguageTool";
 export const LANGUAGE_ID_HTML = "html";
 export const LANGUAGE_ID_MARKDOWN = "markdown";
 export const LANGUAGE_ID_MDX = "mdx";
+export const LANGUAGE_ID_TYPST = "typst";
 
 export const SUPPORTED_LANGUAGE_IDS: string[] = [
   LANGUAGE_ID_HTML,
   LANGUAGE_ID_MARKDOWN,
   LANGUAGE_ID_MDX,
+  LANGUAGE_ID_TYPST,
 ];
 
 // File Scheme
@@ -72,6 +74,7 @@ export const SERVICE_PARAMETERS: string[] = [
   "disabledRules",
   "level",
 ];
+export const TYPST_DISABLED_RULES: string[] = ["EN_QUOTES", "ELLIPSIS"];
 export const SERVICE_RULE_BASE_URI =
   "https://community.languagetool.org/rule/show/";
 export const SERVICE_RULE_URL_LANG_DEFAULT = "en";

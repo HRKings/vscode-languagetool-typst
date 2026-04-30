@@ -231,6 +231,9 @@ export function activate(context: vscode.ExtensionContext): void {
     Constants.COMMAND_SMART_FORMAT,
     (editor: vscode.TextEditor, edit: vscode.TextEditorEdit) => {
       if (configMan.isLanguageSupportedAndEnabled(editor.document)) {
+        if (editor.document.languageId === Constants.LANGUAGE_ID_TYPST) {
+          return;
+        }
         // Revert to regex here for cleaner code.
         const text: string = editor.document.getText();
         const lastOffset: number = text.length;

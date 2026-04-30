@@ -4,7 +4,19 @@
 "use strict";
 
 import * as path from "path";
+import * as fs from "fs";
 import LicensePlugin from "webpack-license-plugin";
+
+class CopyTypstParserWasmPlugin {
+  apply(compiler: import("webpack").Compiler) {
+    compiler.hooks.afterEmit.tap("CopyTypstParserWasmPlugin", () => {
+      fs.copyFileSync(
+        require.resolve("@myriaddreamin/typst-ts-parser/wasm"),
+        path.resolve(__dirname, "dist", "typst_ts_parser_bg.wasm"),
+      );
+    });
+  }
+}
 
 // tslint:disable-next-line: jsdoc-format
 /**@type {import("webpack").Configuration}*/
@@ -38,7 +50,10 @@ const config = {
     libraryTarget: "commonjs2",
     path: path.resolve(__dirname, "dist"),
   },
-  plugins: [new LicensePlugin({ outputFilename: "meta/licenses.json" })],
+  plugins: [
+    new LicensePlugin({ outputFilename: "meta/licenses.json" }),
+    new CopyTypstParserWasmPlugin(),
+  ],
   resolve: {
     extensions: [".ts", ".js"],
   },
