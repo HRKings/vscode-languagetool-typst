@@ -14,9 +14,7 @@
  *   limitations under the License.
  */
 
-import { IAnnotatedtext, IAnnotation } from "annotatedtext";
-import * as RehypeBuilder from "annotatedtext-rehype";
-import * as RemarkBuilder from "annotatedtext-remark";
+import { IAnnotatedtext } from "annotatedtext";
 import * as Fetch from "node-fetch";
 import {
   CancellationToken,
@@ -39,9 +37,6 @@ import {
 } from "vscode";
 import { ConfigurationManager } from "./ConfigurationManager";
 import * as Constants from "./Constants";
-import { FormattingProviderDashes } from "./FormattingProviderDashes";
-import { FormattingProviderEllipses } from "./FormattingProviderEllipses";
-import { FormattingProviderQuotes } from "./FormattingProviderQuotes";
 import {
   IIgnoreItem,
   ILanguageToolMatch,
@@ -77,8 +72,6 @@ export class Linter implements CodeActionProvider {
   }
 
   public diagnosticCollection: DiagnosticCollection;
-  public remarkBuilderOptions: RemarkBuilder.IOptions = RemarkBuilder.defaults;
-  public rehypeBuilderOptions: RehypeBuilder.IOptions = RehypeBuilder.defaults;
 
   private readonly configManager: ConfigurationManager;
   private readonly statusBarManager: StatusBarManager;
@@ -92,7 +85,6 @@ export class Linter implements CodeActionProvider {
     this.diagnosticCollection = languages.createDiagnosticCollection(
       Constants.EXTENSION_DISPLAY_NAME,
     );
-    this.remarkBuilderOptions.interpretmarkup = this.customMarkdownInterpreter;
     this.statusBarManager = new StatusBarManager(configManager);
     this.typstBuilder = new TypstAnnotatedTextBuilder();
   }
@@ -191,19 +183,6 @@ export class Linter implements CodeActionProvider {
       this.timeoutMap.set(uriString, timeout);
     }
   }
-  // Force request a lint for a document as plain text regardless of language id
-  public requestLintAsPlainText(
-    document: TextDocument,
-    timeoutDuration: number = Constants.EXTENSION_TIMEOUT_MS,
-  ): void {
-    this.cancelLint(document);
-    const uriString = document.uri.toString();
-    const timeout = setTimeout(() => {
-      this.lintDocumentAsPlainText(document);
-    }, timeoutDuration);
-    this.timeoutMap.set(uriString, timeout);
-  }
-
   // Cancel lint
   public cancelLint(document: TextDocument): void {
     const uriString: string = document.uri.toString();
@@ -219,91 +198,23 @@ export class Linter implements CodeActionProvider {
     }
   }
 
-  // Build annotatedtext from Markdown
-  public buildAnnotatedMarkdown(text: string): IAnnotatedtext {
-    return RemarkBuilder.build(text, this.remarkBuilderOptions);
-  }
-
-  // Build annotatedtext from HTML
-  public buildAnnotatedHTML(text: string): IAnnotatedtext {
-    return RehypeBuilder.build(text, this.rehypeBuilderOptions);
-  }
-
-  // Build annotatedtext from PLAINTEXT
-  public buildAnnotatedPlaintext(plainText: string): IAnnotatedtext {
-    const textAnnotation: IAnnotation = {
-      text: plainText,
-      offset: {
-        start: 0,
-        end: plainText.length,
-      },
-    };
-    return { annotation: [textAnnotation] };
-  }
-
   // Build annotatedtext from Typst
   public buildAnnotatedTypst(text: string): Promise<IAnnotatedtext> {
     return this.typstBuilder.build(text);
   }
 
-  // Abstract annotated text builder
-  public buildAnnotatedtext(document: TextDocument): IAnnotatedtext {
-    let annotatedtext: IAnnotatedtext = { annotation: [] };
-    switch (document.languageId) {
-      case Constants.LANGUAGE_ID_MARKDOWN:
-        annotatedtext = this.buildAnnotatedMarkdown(document.getText());
-        break;
-      case Constants.LANGUAGE_ID_MDX:
-        annotatedtext = this.buildAnnotatedMarkdown(document.getText());
-        break;
-      case Constants.LANGUAGE_ID_HTML:
-        annotatedtext = this.buildAnnotatedHTML(document.getText());
-        break;
-      case Constants.LANGUAGE_ID_TYPST:
-        annotatedtext = { annotation: [] };
-        break;
-      default:
-        annotatedtext = this.buildAnnotatedPlaintext(document.getText());
-        break;
-    }
-    return annotatedtext;
-  }
-
   // Perform Lint on Document
   public async lintDocument(document: TextDocument): Promise<void> {
     if (this.configManager.isLanguageSupportedAndEnabled(document)) {
-      if (
-        document.languageId === Constants.LANGUAGE_ID_MARKDOWN ||
-        document.languageId === Constants.LANGUAGE_ID_MDX
-      ) {
-        this.ignoreList = this.buildIgnoreList(document);
-        const annotatedMarkdown: string = JSON.stringify(
-          this.buildAnnotatedMarkdown(document.getText()),
-        );
-        this.lintAnnotatedText(document, annotatedMarkdown);
-      } else if (document.languageId === Constants.LANGUAGE_ID_HTML) {
-        const annotatedHTML: string = JSON.stringify(
-          this.buildAnnotatedHTML(document.getText()),
-        );
-        this.lintAnnotatedText(document, annotatedHTML);
-      } else if (document.languageId === Constants.LANGUAGE_ID_TYPST) {
-        const annotatedTypst: string = JSON.stringify(
-          await this.buildAnnotatedTypst(document.getText()),
-        );
-        this.lintAnnotatedText(document, annotatedTypst);
-      } else {
-        this.lintDocumentAsPlainText(document);
-      }
+      this.ignoreList = this.buildIgnoreList(document);
+      const annotatedTypstObject = await this.buildAnnotatedTypst(
+        document.getText(),
+      );
+      this.logTypstAnnotatedText(document, annotatedTypstObject);
+      const annotatedTypst: string = JSON.stringify(annotatedTypstObject);
+      this.lintAnnotatedText(document, annotatedTypst);
       this.statusBarManager.show();
     }
-  }
-
-  // Perform Lint on Document As Plain Text
-  public lintDocumentAsPlainText(document: TextDocument): void {
-    const annotatedPlaintext: string = JSON.stringify(
-      this.buildAnnotatedPlaintext(document.getText()),
-    );
-    this.lintAnnotatedText(document, annotatedPlaintext);
   }
 
   // Lint Annotated Text
@@ -320,69 +231,12 @@ export class Linter implements CodeActionProvider {
       );
     }
     ltPostDataDict.data = annotatedText;
+    this.logLanguageToolRequest(document, ltPostDataDict);
     this.callLanguageTool(document, ltPostDataDict);
     this.statusBarManager.setIdle();
   }
 
-  // Apply smart formatting to annotated text.
-  public smartFormatAnnotatedtext(annotatedtext: IAnnotatedtext): string {
-    let newText = "";
-    // Only run substitutions on text annotations.
-    annotatedtext.annotation.forEach((annotation) => {
-      if (annotation.text) {
-        newText += annotation.text
-          // Open Double Quotes
-          .replace(/"(?=[\w'‘])/g, FormattingProviderQuotes.startDoubleQuote)
-          // Close Double Quotes
-          .replace(
-            /([\w.!?%,'’])"/g,
-            "$1" + FormattingProviderQuotes.endDoubleQuote,
-          )
-          // Remaining Double Quotes
-          .replace(/"/, FormattingProviderQuotes.endDoubleQuote)
-          // Open Single Quotes
-          .replace(
-            /(\W)'(?=[\w"“])/g,
-            "$1" + FormattingProviderQuotes.startSingleQuote,
-          )
-          // Closing Single Quotes
-          .replace(
-            /([\w.!?%,"”])'/g,
-            "$1" + FormattingProviderQuotes.endSingleQuote,
-          )
-          // Remaining Single Quotes
-          .replace(/'/, FormattingProviderQuotes.endSingleQuote)
-          .replace(/([\w])---(?=[\w])/g, "$1" + FormattingProviderDashes.emDash)
-          .replace(/([\w])--(?=[\w])/g, "$1" + FormattingProviderDashes.enDash)
-          .replace(/\.\.\./g, FormattingProviderEllipses.ellipses);
-      } else if (annotation.markup) {
-        newText += annotation.markup;
-      }
-    });
-    return newText;
-  }
-
   // Private instance methods
-
-  // Custom markdown interpretation
-  private customMarkdownInterpreter(text: string): string {
-    // Default of preserve line breaks
-    let interpretation = "\n".repeat((text.match(/\n/g) || []).length);
-    if (text.match(/^(?!\s*`{3})\s*`{1,2}/)) {
-      // Treat inline code as redacted text
-      interpretation = "`" + "#".repeat(text.length - 2) + "`";
-    } else if (text.match(/#\s+$/)) {
-      // Preserve Headers
-      interpretation += "# ";
-    } else if (text.match(/\*\s+$/)) {
-      // Preserve bullets without leading spaces
-      interpretation += "* ";
-    } else if (text.match(/\d+\.\s+$/)) {
-      // Treat as bullets without leading spaces
-      interpretation += "** ";
-    }
-    return interpretation;
-  }
 
   // Set ltPostDataTemplate from Configuration
   private getPostDataTemplate(): Record<string, string> {
@@ -405,6 +259,128 @@ export class Linter implements CodeActionProvider {
     );
     additionalRules.forEach((rule) => rules.add(rule));
     return Array.from(rules).join(",");
+  }
+
+  private debugLog(message: string): void {
+    if (!this.configManager.isDebugEnabled()) {
+      return;
+    }
+
+    Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+      "[debug] " + new Date().toISOString() + " " + message,
+    );
+  }
+
+  private logTypstAnnotatedText(
+    document: TextDocument,
+    annotatedText: IAnnotatedtext,
+  ): void {
+    if (!this.configManager.isDebugEnabled()) {
+      return;
+    }
+
+    const textAnnotations = annotatedText.annotation.filter(
+      (annotation) => annotation.text !== undefined,
+    );
+    const markupAnnotations = annotatedText.annotation.filter(
+      (annotation) => annotation.markup !== undefined,
+    );
+    const interpretedText = annotatedText.annotation
+      .map((annotation) => annotation.text ?? annotation.interpretAs ?? "")
+      .join("");
+
+    this.debugLog(
+      `Typst annotated text: uri=${document.uri.toString()} annotations=${
+        annotatedText.annotation.length
+      } textAnnotations=${textAnnotations.length} markupAnnotations=${
+        markupAnnotations.length
+      } interpretedLength=${interpretedText.length}`,
+    );
+    this.debugLog(
+      "Typst interpreted text preview: " +
+        JSON.stringify(this.truncate(interpretedText, 4000)),
+    );
+
+    annotatedText.annotation.forEach((annotation, index) => {
+      if (annotation.text === undefined) {
+        return;
+      }
+
+      const start = document.positionAt(annotation.offset.start);
+      const end = document.positionAt(annotation.offset.end);
+      this.debugLog(
+        `Typst text annotation ${index}: ${this.formatPosition(
+          start,
+        )}-${this.formatPosition(end)} text=${JSON.stringify(
+          this.truncate(annotation.text, 500),
+        )}`,
+      );
+    });
+  }
+
+  private logLanguageToolRequest(
+    document: TextDocument,
+    postData: Record<string, string>,
+  ): void {
+    if (!this.configManager.isDebugEnabled()) {
+      return;
+    }
+
+    const dataLength = postData.data ? postData.data.length : 0;
+    const parameters = Object.keys(postData)
+      .filter((key) => key !== "data" && key !== "apiKey")
+      .map((key) => key + "=" + postData[key])
+      .join(", ");
+
+    this.debugLog(
+      `LanguageTool request: uri=${document.uri.toString()} languageId=${
+        document.languageId
+      } url=${this.configManager.getUrl() || "--"} dataLength=${dataLength} ${
+        parameters ? "parameters=" + parameters : "parameters=--"
+      }`,
+    );
+  }
+
+  private logLanguageToolResponse(
+    document: TextDocument,
+    response: ILanguageToolResponse,
+  ): void {
+    if (!this.configManager.isDebugEnabled()) {
+      return;
+    }
+
+    this.debugLog(
+      `LanguageTool response: uri=${document.uri.toString()} matches=${
+        response.matches.length
+      } language=${response.language?.code || "--"} detected=${
+        response.language?.detectedLanguage?.code || "--"
+      }`,
+    );
+
+    response.matches.forEach((match, index) => {
+      const start = document.positionAt(match.offset);
+      const end = document.positionAt(match.offset + match.length);
+      this.debugLog(
+        `LanguageTool match ${index}: ${this.formatPosition(
+          start,
+        )}-${this.formatPosition(end)} rule=${match.rule.id} category=${
+          match.rule.category.id
+        } text=${JSON.stringify(
+          this.truncate(document.getText(new Range(start, end)), 200),
+        )} message=${JSON.stringify(this.truncate(match.message, 300))}`,
+      );
+    });
+  }
+
+  private truncate(text: string, maxLength: number): string {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return text.slice(0, maxLength) + "...";
+  }
+
+  private formatPosition(position: Position): string {
+    return position.line + 1 + ":" + (position.character + 1);
   }
 
   // Call to LanguageTool Service
@@ -435,6 +411,7 @@ export class Linter implements CodeActionProvider {
         .then((res) => res.json())
         .then((json: ILanguageToolResponse) => {
           this.statusBarManager.setLtSoftware(json.software);
+          this.logLanguageToolResponse(document, json);
           this.suggest(document, json);
         })
         .catch((err) => {
@@ -459,10 +436,17 @@ export class Linter implements CodeActionProvider {
     this.statusBarManager.setLtSoftware(response.software);
     const matches = response.matches;
     const diagnostics: LTDiagnostic[] = [];
+    let ignoredMatchCount = 0;
     matches.forEach((match: ILanguageToolMatch) => {
       const start: Position = document.positionAt(match.offset);
       const end: Position = document.positionAt(match.offset + match.length);
       if (this.shouldIgnoreTypstMatch(document, start, match)) {
+        ignoredMatchCount++;
+        this.debugLog(
+          `Ignored Typst match: ${match.rule.id} at ${this.formatPosition(
+            start,
+          )} text=${JSON.stringify(document.getText(new Range(start, end)))}`,
+        );
         return;
       }
       const ignored: IIgnoreItem[] = this.getIgnoreList(document, start);
@@ -516,6 +500,11 @@ export class Linter implements CodeActionProvider {
       }
     });
     this.diagnosticCollection.set(document.uri, diagnostics);
+    this.debugLog(
+      `Diagnostics set: uri=${document.uri.toString()} diagnostics=${
+        diagnostics.length
+      } ignored=${ignoredMatchCount}`,
+    );
   }
 
   private shouldIgnoreTypstMatch(

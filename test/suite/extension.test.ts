@@ -13,15 +13,13 @@ suite("Extension Test Suite", () => {
     assert.ok(vscode.extensions.getExtension("local.languagetool-linter-typst"));
   });
 
-  test("Extension should activate", function () {
+  test("Extension should activate", async function () {
     this.timeout(60000);
     const ext: vscode.Extension<unknown> | undefined =
       vscode.extensions.getExtension("local.languagetool-linter-typst");
     if (ext) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ext.activate().then((api: unknown) => {
-        assert.ok(true);
-      });
+      await ext.activate();
+      assert.ok(true);
     } else {
       assert.ok(false);
     }

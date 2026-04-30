@@ -10,10 +10,7 @@
     "checker",
     "grammar",
     "grammar-checker",
-    "html",
     "languagetool",
-    "markdown",
-    "mdx",
     "proofread",
     "spell",
     "spelling",
@@ -47,8 +44,7 @@
   },
   "dependencies": {
     "@myriaddreamin/typst-ts-parser": "^0.7.0-rc2",
-    "annotatedtext-rehype": "^0.6.0",
-    "annotatedtext-remark": "^0.8.0",
+    "annotatedtext": "^0.7.0",
     "execa": "^9.6.1",
     "glob": "^13.0.0",
     "node-fetch": "^2.7.0",
@@ -87,18 +83,8 @@
         "category": "LanguageTool Linter"
       },
       {
-        "command": "languagetoolLinter.checkDocumentAsPlainText",
-        "title": "Force Check as Plain Text Document",
-        "category": "LanguageTool Linter"
-      },
-      {
         "command": "languagetoolLinter.clearDocumentDiagnostics",
         "title": "Clear Document Diagnostics",
-        "category": "LanguageTool Linter"
-      },
-      {
-        "command": "languagetoolLinter.smartFormatDocument",
-        "title": "Smart Format Document",
         "category": "LanguageTool Linter"
       },
       {
@@ -111,42 +97,22 @@
       "commandPalette": [
         {
           "command": "languagetoolLinter.checkDocument",
-          "when": "editorLangId == markdown || editorLangId == mdx || editorLangId == html || editorLangId == typst"
-        },
-        {
-          "command": "languagetoolLinter.checkDocumentAsPlainText",
-          "when": "editorLangId != markdown && editorLangId != mdx && editorLangId != html && editorLangId != typst"
+          "when": "editorLangId == typst"
         },
         {
           "command": "languagetoolLinter.clearDocumentDiagnostics"
-        },
-        {
-          "command": "languagetoolLinter.smartFormatDocument",
-          "when": "editorLangId == markdown || editorLangId == mdx || editorLangId == html"
         }
       ],
       "editor/context": [
         {
           "command": "languagetoolLinter.checkDocument",
           "title": "LanguageTool: Check Document",
-          "when": "editorLangId == markdown || editorLangId == mdx || editorLangId == html || editorLangId == typst",
-          "group": "LanguageTool"
-        },
-        {
-          "command": "languagetoolLinter.checkDocumentAsPlainText",
-          "title": "LanguageTool: Force Check as Plain Text Document",
-          "when": "editorLangId != markdown && editorLangId != mdx && editorLangId != html && editorLangId != typst",
+          "when": "editorLangId == typst",
           "group": "LanguageTool"
         },
         {
           "command": "languagetoolLinter.clearDocumentDiagnostics",
           "title": "LanguageTool: Clear Document Diagnotics",
-          "group": "LanguageTool"
-        },
-        {
-          "command": "languagetoolLinter.smartFormatDocument",
-          "title": "LanguageTool: Smart Format Document",
-          "when": "editorLangId == markdown || editorLangId == mdx || editorLangId == html",
           "group": "LanguageTool"
         }
       ]
@@ -155,16 +121,6 @@
       "type": "object",
       "title": "LanguageTool Linter",
       "properties": {
-        "languageToolLinter.smartFormat.onType": {
-          "type": "boolean",
-          "default": false,
-          "description": "Run smart format as you type for quotes (“”‘’), em-dashes and en-dashes, and ellipses (…). Ensure 'Editor: Format On Type' is enabled."
-        },
-        "languageToolLinter.smartFormat.onSave": {
-          "type": "boolean",
-          "default": false,
-          "description": "Run smart format when you save for quotes (“”‘’), em-dashes and en-dashes, and ellipses (…)."
-        },
         "languageToolLinter.diagnosticSeverity": {
           "type": "string",
           "default": "warning",
@@ -189,6 +145,11 @@
           "type": "boolean",
           "default": false,
           "description": "Hide Rule IDs in messages."
+        },
+        "languageToolLinter.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Write verbose LanguageTool Linter debug information to the output channel."
         },
         "languageToolLinter.lintOnChange": {
           "type": "boolean",
@@ -506,21 +467,6 @@
           "default": true,
           "description": "Shows a hint for ignored words, providing a Quick Fix to remove the word from the ignored list."
         },
-        "languageToolLinter.plainText.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable linting of documents as plain text. The entire document is sent to LanguageTool as-is. Use Plain Text > Language IDs to determine which documents are considered Plain Text."
-        },
-        "languageToolLinter.plainText.languageIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [
-            "plaintext"
-          ],
-          "markdownDescription": "A list of [Language IDs](https://code.visualstudio.com/docs/languages/identifiers#_known-language-identifiers) to treat as plain text."
-        },
         "languageToolLinter.disabledLanguageIds": {
           "type": "array",
           "items": {
@@ -532,10 +478,6 @@
     }
   },
   "activationEvents": [
-    "onLanguage:html",
-    "onLanguage:markdown",
-    "onLanguage:mdx",
-    "onLanguage:plaintext",
     "onLanguage:typst"
   ],
   "icon": "images/LanguageTool-Icon.png",

@@ -24,15 +24,9 @@ export const EXTENSION_DISPLAY_NAME = "languagetool-linter";
 export const EXTENSION_DIAGNOSTIC_SOURCE = "LanguageTool";
 
 // Programming Language IDs
-export const LANGUAGE_ID_HTML = "html";
-export const LANGUAGE_ID_MARKDOWN = "markdown";
-export const LANGUAGE_ID_MDX = "mdx";
 export const LANGUAGE_ID_TYPST = "typst";
 
 export const SUPPORTED_LANGUAGE_IDS: string[] = [
-  LANGUAGE_ID_HTML,
-  LANGUAGE_ID_MARKDOWN,
-  LANGUAGE_ID_MDX,
   LANGUAGE_ID_TYPST,
 ];
 
@@ -50,8 +44,7 @@ export const CONFIGURATION_IGNORED_WORD_HINT = "languageTool.ignoredWordHint";
 export const CONFIGURATION_DISABLED_RULES = "languageTool.disabledRules";
 export const CONFIGURATION_DISABLED_CATEGORIES =
   "languageTool.disabledCategories";
-export const CONFIGURATION_PLAIN_TEXT_ENABLED = "plainText.enabled";
-export const CONFIGURATION_PLAIN_TEXT_IDS = "plainText.languageIds";
+export const CONFIGURATION_DEBUG = "debug";
 export const CONFIGURATION_DISABLED_IDS = "disabledLanguageIds";
 export const CONFIGURATION_LANGUAGE = "language";
 
@@ -82,11 +75,8 @@ export const SERVICE_RULE_URL_GENERIC_LABEL = "details";
 
 // Extension Commands
 export const COMMAND_CHECK_DOCUMENT = "languagetoolLinter.checkDocument";
-export const COMMAND_CHECK_DOCUMENT_AS_PLAINTEXT =
-  "languagetoolLinter.checkDocumentAsPlainText";
 export const COMMAND_CLEAR_DIAGNOSTICS =
   "languagetoolLinter.clearDocumentDiagnostics";
-export const COMMAND_SMART_FORMAT = "languagetoolLinter.smartFormatDocument";
 export const COMMAND_IGNORE_USR_WORD = "languagetoolLinter.ignoreWordGlobally";
 export const COMMAND_IGNORE_WS_WORD =
   "languagetoolLinter.ignoreWordInWorkspace";
@@ -99,9 +89,7 @@ export const COMMAND_DISABLE_CATEGORY = "languagetoolLinter.disableCategory";
 export const COMMAND_TOGGLE_LINTING = "languagetoolLinter.toggleSuspendLinting";
 export const COMMAND_STRINGS = [
   COMMAND_CHECK_DOCUMENT,
-  COMMAND_CHECK_DOCUMENT_AS_PLAINTEXT,
   COMMAND_CLEAR_DIAGNOSTICS,
-  COMMAND_SMART_FORMAT,
   COMMAND_IGNORE_USR_WORD,
   COMMAND_IGNORE_WS_WORD,
   COMMAND_REMOVE_USR_IGNORED_WORD,

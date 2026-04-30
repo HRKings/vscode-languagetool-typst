@@ -99,11 +99,8 @@ export class ConfigurationManager implements Disposable {
         );
       }
     }
-    // List of plaintext ids or disabled language ids changed - need to reload
-    if (
-      event.affectsConfiguration("languageToolLinter.plainText") ||
-      event.affectsConfiguration("languageToolLinter.disabledLanguageIds")
-    ) {
+    // Disabled language ids changed - need to reload
+    if (event.affectsConfiguration("languageToolLinter.disabledLanguageIds")) {
       const action = "Reload";
       window
         .showInformationMessage(
@@ -130,16 +127,6 @@ export class ConfigurationManager implements Disposable {
     return this.lintingSuspended;
   }
 
-  // Smart Format on Type
-  public isSmartFormatOnType(): boolean {
-    return this.config.get("smartFormat.onType") as boolean;
-  }
-
-  // Smart Format on Save
-  public isSmartFormatOnSave(): boolean {
-    return this.config.get("smartFormat.onSave") as boolean;
-  }
-
   // Is language ID supported and enabled?
   public isLanguageSupportedAndEnabled(document: TextDocument): boolean {
     if (
@@ -149,20 +136,6 @@ export class ConfigurationManager implements Disposable {
       return this.getLanguageIds().includes(document.languageId);
     }
     return false;
-  }
-
-  // Is Plain Text Checking Enabled?
-  public isPlainTextEnabled(): boolean {
-    return this.config.get(
-      Constants.CONFIGURATION_PLAIN_TEXT_ENABLED,
-    ) as boolean;
-  }
-
-  // Is the Language ID Considered "Plain Text"?
-  public isPlainTextId(languageId: string): boolean {
-    const languageIds: string[] =
-      this.config.get(Constants.CONFIGURATION_PLAIN_TEXT_IDS) || [];
-    return languageIds.includes(languageId);
   }
 
   public getDocumentSelectors(): DocumentSelector[] {
@@ -219,13 +192,6 @@ export class ConfigurationManager implements Disposable {
     const languageIds = supportedLanguageIds.filter(
       (languageId) => !disabledLanguageIds.includes(languageId),
     );
-    if (this.isPlainTextEnabled()) {
-      const plainTextLanguageIds: string[] =
-        this.config.get(Constants.CONFIGURATION_PLAIN_TEXT_IDS) || [];
-      plainTextLanguageIds.forEach((id) => {
-        languageIds.push(id);
-      });
-    }
     return languageIds;
   }
 
@@ -281,6 +247,10 @@ export class ConfigurationManager implements Disposable {
       return true;
     }
     return false;
+  }
+
+  public isDebugEnabled(): boolean {
+    return this.config.get(Constants.CONFIGURATION_DEBUG) as boolean;
   }
 
   public getClassPath(): string {

@@ -14,6 +14,8 @@
 = Introduction
 Typst is a markup-based [typesetting system tyypo](https://typst.app/ "Typst Official Home") designed to be moore intuitive than LaTeX.
 
+== 1. Subtitle with number
+
 // 3. Basic Formatting
 This text features *bold emphasis*, _italics_, and #underline[underlining].
 - Bulet points use the hyphen `-`.
@@ -37,7 +39,7 @@ def hello_typst():
     columns: (1fr, 1fr),
     inset: 10pt,
     align: horizon,
-    [*Feature*], [*Status*],
+    [*Featuure*], [*Status*],
     [Fast Preview with typoo], [Built-in],
     [Scripting], [Advanceed],
   ),

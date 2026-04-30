@@ -1,5 +1,6 @@
 import { glob } from "glob";
 import Mocha from "mocha";
+import * as fs from "fs";
 import * as path from "path";
 
 export function run(): Promise<void> {
@@ -12,7 +13,16 @@ export function run(): Promise<void> {
   const testsRoot = path.resolve(__dirname, "..");
 
   return new Promise((c, e) => {
-    const files = glob.sync("**/**.test.js", { cwd: testsRoot });
+    const sourceTestsRoot = path.resolve(__dirname, "../../../test");
+    const files = glob
+      .sync("**/**.test.js", { cwd: testsRoot })
+      .filter((file) => {
+        const sourceFile = path.resolve(
+          sourceTestsRoot,
+          file.replace(/\.js$/, ".ts"),
+        );
+        return fs.existsSync(sourceFile);
+      });
 
     // Add files to the test suite
     files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));

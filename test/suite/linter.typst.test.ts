@@ -13,18 +13,26 @@ suite("Linter Typst Test Suite", () => {
     "../../../test-fixtures/workspace",
   );
 
+  function getCheckedText(annotatedText: IAnnotatedtext): string {
+    return annotatedText.annotation
+      .map((annotation) => annotation.text || "")
+      .join("");
+  }
+
+  function getUncheckedText(annotatedText: IAnnotatedtext): string {
+    return annotatedText.annotation
+      .map((annotation) => annotation.markup || "")
+      .join("");
+  }
+
   test("Linter should return annotated text for Typst", async () => {
     const text: string = fs.readFileSync(
       path.resolve(__dirname, testWorkspace + "/typst/basic.typ"),
       "utf8",
     );
     const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(text);
-    const checkedText = actual.annotation
-      .map((annotation) => annotation.text || "")
-      .join("");
-    const uncheckedText = actual.annotation
-      .map((annotation) => annotation.markup || "")
-      .join("");
+    const checkedText = getCheckedText(actual);
+    const uncheckedText = getUncheckedText(actual);
 
     assert.ok(checkedText.includes("A Typst Heading"));
     assert.ok(
@@ -42,5 +50,46 @@ suite("Linter Typst Test Suite", () => {
     assert.ok(uncheckedText.includes("raw block should not be checked"));
     assert.ok(uncheckedText.includes("x + y should not be checked"));
     assert.ok(uncheckedText.includes("This comment should not be checked."));
+  });
+
+  test("Linter should keep advanced Typst prose checkable", async () => {
+    const text: string = fs.readFileSync(
+      path.resolve(__dirname, testWorkspace + "/typst/advanced.typ"),
+      "utf8",
+    );
+    const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(text);
+    const checkedText = getCheckedText(actual);
+    const uncheckedText = getUncheckedText(actual);
+
+    [
+      "typesetting system tyypo",
+      "moore intuitive",
+      "Bulet points",
+      "tehe plus",
+      "citizesns",
+      "equattions",
+      "encslosed",
+      "Fast Preview with typoo",
+      "Advanceed",
+      "tablee example",
+      "custdom function",
+    ].forEach((expectedText) => {
+      assert.ok(
+        checkedText.includes(expectedText),
+        `Expected checked Typst text to include "${expectedText}".`,
+      );
+    });
+
+    [
+      "Typst Feature Showcase",
+      "Expert User",
+      "Powerful scripting built-in",
+      "1. Document Metadata",
+    ].forEach((expectedMarkup) => {
+      assert.ok(
+        uncheckedText.includes(expectedMarkup),
+        `Expected Typst markup to include "${expectedMarkup}".`,
+      );
+    });
   });
 });

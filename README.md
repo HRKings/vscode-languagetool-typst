@@ -3,8 +3,7 @@
 [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/davidlday/vscode-languagetool-linter/nodejs-ci.yml)](https://github.com/davidlday/vscode-languagetool-linter/actions/workflows/nodejs-ci.yml)
 
 Grammar, Style and Spell Checking in VS Code via
-[LanguageTool](https://languagetool.org). Support Markdown, MDX, HTML, Typst,
-and plain text files.
+[LanguageTool](https://languagetool.org), focused on Typst documents.
 
 In memory of [Adam Voss](https://github.com/adamvoss), original creator of the
 [LanguageTool for Visual Studio Code](https://github.com/languagetool-language-server/vscode-languagetool)
@@ -14,13 +13,12 @@ extension.
 
 - Issue highlighting with hover description.
 - Replacement suggestions.
-- Checks plain text, Markdown, MDX, HTML, and Typst.
-- Smart format on type to replace quotes with smart quotes, multiple consecutive
-  hyphens with em or en-dash, and three consecutive periods with ellipses.
-  - Make sure 'Editor: Format On Type' is enabled or this feature won't work.
-    You can enable it at the document format level as well in your
-    `settings.json`.
-- Allow specific rules to be ignored for markdown (pandoc) and HTML
+- Checks Typst prose while skipping Typst markup, comments, raw code, math, and
+  scripting fragments.
+- Uses annotated text requests so LanguageTool diagnostics map back to the
+  original `.typ` file.
+- Disables LanguageTool's quote and ellipsis typography rules for Typst because
+  those often conflict with Typst source syntax.
 
 ## Setup
 
@@ -104,11 +102,11 @@ particular attention to:
 You have the chance to ignore specific rules inline to not bloat up your ignore
 list for single words:
 
-    <!-- @IGNORE:UPPERCASE_SENTENCE_START@ -->
+    // @IGNORE:UPPERCASE_SENTENCE_START@
     soll heißen, dass die Nachricht von mir ist, die Koordinaten hat
     ein kleiner Computer, den Sigrún mir zur Verfügung gestellt hat aus
     dem irdischen
-    ‚World Geodetic System 1984‘ <!-- @IGNORE:GERMAN_SPELLER_RULE(Geodetic)@ -->
+    ‚World Geodetic System 1984‘ // @IGNORE:GERMAN_SPELLER_RULE(Geodetic)@
 
 This example will ignore the missing capital letter at the beginning (soll →
 Soll) and an unknown word ('Geodetic')
@@ -116,17 +114,14 @@ Soll) and an unknown word ('Geodetic')
 The optional match word is useful if the same rule is applied to several words
 in the sentence.
 
-The rules can be applied to the current line (e.g. at the end) or at the line
-before.
+The rules can be applied to the current line, for example at the end, or at the
+line before.
 
 Syntax:
 
     @LT-IGNORE:<rulename>(<text-match>)@
 
 The and the `text-match` is optional.
-
-_Note_: Even in pandoc you have to handle the comment in html output. This can
-be done by using a filter.
 
 ## Credits
 
@@ -140,6 +135,6 @@ The following projects provided excellent guidance on creating this project.
   [LanguageTool for Visual Studio Code](https://github.com/languagetool-language-server/vscode-languagetool)
 - [VS Code Write Good Extension](https://github.com/TravisTheTechie/vscode-write-good/)
 - [Fall: Not Yet Another Parser Generator](https://github.com/matklad/fall)
-- [markdownlint](https://github.com/DavidAnson/vscode-markdownlint)
+- [typst-ts-parser](https://www.npmjs.com/package/@myriaddreamin/typst-ts-parser)
 
 <!-- markdownlint-enable no-inline-html -->

@@ -14,27 +14,15 @@
  *   limitations under the License.
  */
 
-import { IAnnotatedtext } from "annotatedtext";
 import * as vscode from "vscode";
 import { ConfigurationManager } from "./ConfigurationManager";
 import * as Constants from "./Constants";
-import { FormattingProviderDashes } from "./FormattingProviderDashes";
-import { FormattingProviderEllipses } from "./FormattingProviderEllipses";
-import { FormattingProviderQuotes } from "./FormattingProviderQuotes";
 import { Linter } from "./Linter";
-import { OnTypeFormattingDispatcher } from "./OnTypeFormattingDispatcher";
 
 // Wonder Twin Powers, Activate!
 export function activate(context: vscode.ExtensionContext): void {
   const configMan: ConfigurationManager = new ConfigurationManager();
   const linter: Linter = new Linter(configMan);
-  const onTypeDispatcher = new OnTypeFormattingDispatcher({
-    '"': new FormattingProviderQuotes(configMan),
-    "'": new FormattingProviderQuotes(configMan),
-    "-": new FormattingProviderDashes(configMan),
-    ".": new FormattingProviderEllipses(configMan),
-  });
-  const onTypeTriggers = onTypeDispatcher.getTriggerCharacters();
 
   context.subscriptions.push(configMan);
 
@@ -85,15 +73,6 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
   );
 
-  // Register onWillSaveTextDocument event - smart format if enabled
-  context.subscriptions.push(
-    vscode.workspace.onWillSaveTextDocument((_event) => {
-      if (configMan.isSmartFormatOnSave()) {
-        vscode.commands.executeCommand(Constants.COMMAND_SMART_FORMAT);
-      }
-    }),
-  );
-
   // Register onDidCloseTextDocument event - cancel any pending lint
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document: vscode.TextDocument) => {
@@ -110,17 +89,6 @@ export function activate(context: vscode.ExtensionContext): void {
       context.subscriptions.push(
         vscode.languages.registerCodeActionsProvider(selector, linter),
       );
-
-      if (onTypeTriggers) {
-        context.subscriptions.push(
-          vscode.languages.registerOnTypeFormattingEditProvider(
-            selector,
-            onTypeDispatcher,
-            onTypeTriggers.first,
-            ...onTypeTriggers.more,
-          ),
-        );
-      }
     });
 
   // Register onDidCloseTextDocument event
@@ -208,15 +176,6 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(checkDocument);
 
-  // Register "Check as Plain Text Document" TextEditorCommand
-  const checkDocumentAsPlainText = vscode.commands.registerTextEditorCommand(
-    Constants.COMMAND_CHECK_DOCUMENT_AS_PLAINTEXT,
-    (editor: vscode.TextEditor, _edit: vscode.TextEditorEdit) => {
-      linter.requestLintAsPlainText(editor.document, 0);
-    },
-  );
-  context.subscriptions.push(checkDocumentAsPlainText);
-
   // Register "Clear LanguageTool Diagnostics" TextEditorCommand
   const clearDocumentDiagnostics = vscode.commands.registerTextEditorCommand(
     Constants.COMMAND_CLEAR_DIAGNOSTICS,
@@ -225,34 +184,6 @@ export function activate(context: vscode.ExtensionContext): void {
     },
   );
   context.subscriptions.push(clearDocumentDiagnostics);
-
-  // Register "Smart Format Document" TextEditorCommand
-  const smartFormatCommand = vscode.commands.registerTextEditorCommand(
-    Constants.COMMAND_SMART_FORMAT,
-    (editor: vscode.TextEditor, edit: vscode.TextEditorEdit) => {
-      if (configMan.isLanguageSupportedAndEnabled(editor.document)) {
-        if (editor.document.languageId === Constants.LANGUAGE_ID_TYPST) {
-          return;
-        }
-        // Revert to regex here for cleaner code.
-        const text: string = editor.document.getText();
-        const lastOffset: number = text.length;
-        const annotatedtext: IAnnotatedtext = linter.buildAnnotatedtext(
-          editor.document,
-        );
-        const newText = linter.smartFormatAnnotatedtext(annotatedtext);
-        // Replace the whole thing at once so undo applies to all changes.
-        edit.replace(
-          new vscode.Range(
-            editor.document.positionAt(0),
-            editor.document.positionAt(lastOffset),
-          ),
-          newText,
-        );
-      }
-    },
-  );
-  context.subscriptions.push(smartFormatCommand);
 
   // Lint Active Text Editor on Activate
   if (vscode.window.activeTextEditor) {
