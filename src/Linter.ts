@@ -45,6 +45,13 @@ import {
 } from "./Interfaces";
 import { StatusBarManager } from "./StatusBarManager";
 import { TypstAnnotatedTextBuilder } from "./TypstAnnotatedTextBuilder";
+import { TypstTreeSitterAnnotatedTextBuilder } from "./TypstTreeSitterAnnotatedTextBuilder";
+
+interface ITypstBuilder {
+  build(text: string): Promise<IAnnotatedtext>;
+}
+
+const TREE_SITTER_FLAG = process.env.LTL_TREE_SITTER !== "0";
 
 class LTDiagnostic extends Diagnostic {
   match?: ILanguageToolMatch;
@@ -75,7 +82,7 @@ export class Linter implements CodeActionProvider {
 
   private readonly configManager: ConfigurationManager;
   private readonly statusBarManager: StatusBarManager;
-  private readonly typstBuilder: TypstAnnotatedTextBuilder;
+  private readonly typstBuilder: ITypstBuilder;
   private timeoutMap: Map<string, NodeJS.Timeout>;
   private ignoreList: IIgnoreItem[] = [];
   private warnedVariantMismatchUris: Set<string> = new Set<string>();
@@ -87,7 +94,14 @@ export class Linter implements CodeActionProvider {
       Constants.EXTENSION_DISPLAY_NAME,
     );
     this.statusBarManager = new StatusBarManager(configManager);
-    this.typstBuilder = new TypstAnnotatedTextBuilder();
+    this.typstBuilder = TREE_SITTER_FLAG
+      ? new TypstTreeSitterAnnotatedTextBuilder()
+      : new TypstAnnotatedTextBuilder();
+    if (TREE_SITTER_FLAG) {
+      Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+        "TypstTreeSitterAnnotatedTextBuilder selected (LTL_TREE_SITTER=1)",
+      );
+    }
   }
 
   // Provide CodeActions for the given Document and Range

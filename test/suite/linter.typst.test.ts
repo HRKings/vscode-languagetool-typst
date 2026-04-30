@@ -4,14 +4,26 @@ import * as path from "path";
 import { IAnnotatedtext } from "annotatedtext";
 import { ConfigurationManager } from "../../src/ConfigurationManager";
 import { Linter } from "../../src/Linter";
+import { TypstTreeSitterAnnotatedTextBuilder } from "../../src/TypstTreeSitterAnnotatedTextBuilder";
 
 suite("Linter Typst Test Suite", () => {
-  const configManager: ConfigurationManager = new ConfigurationManager();
-  const linter: Linter = new Linter(configManager);
   const testWorkspace: string = path.resolve(
     __dirname,
     "../../../test-fixtures/workspace",
   );
+
+  suiteSetup(async () => {
+    if (process.env.LTL_TREE_SITTER !== "0") {
+      const wasmPath = path.resolve(
+        __dirname,
+        "../../../resources/tree-sitter-typst.wasm",
+      );
+      await TypstTreeSitterAnnotatedTextBuilder.init(wasmPath);
+    }
+  });
+
+  const configManager: ConfigurationManager = new ConfigurationManager();
+  const linter: Linter = new Linter(configManager);
 
   function getCheckedText(annotatedText: IAnnotatedtext): string {
     return annotatedText.annotation
