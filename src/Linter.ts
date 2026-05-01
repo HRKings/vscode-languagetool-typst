@@ -517,6 +517,7 @@ export class Linter implements CodeActionProvider {
         this.checkIfIgnored(
           ignored,
           match.rule.id,
+          match.rule.category.id,
           document.getText(diagnostic.range),
         )
       ) {
@@ -565,18 +566,26 @@ export class Linter implements CodeActionProvider {
    *
    * @param ignored List of ignored element at this line
    * @param id The rule of the spelling problem for this match
-   * @param line The line number
+   * @param category The category of the spelling problem for this match
    * @param text The text of the match
    */
-  checkIfIgnored(ignored: IIgnoreItem[], id: string, text: string): boolean {
+  checkIfIgnored(
+    ignored: IIgnoreItem[],
+    id: string,
+    category: string,
+    text: string,
+  ): boolean {
     if (ignored == null || ignored.length == 0) return false;
     let matchFound = false;
     ignored.forEach((item) => {
       if (matchFound) return;
-      if (
-        item.ruleId == id &&
-        this.matchesIgnoreText(id, item.text, text)
-      ) {
+      if (item.category && item.category !== category) {
+        return;
+      }
+      if (item.ruleId && item.ruleId !== id) {
+        return;
+      }
+      if (this.matchesIgnoreText(id, item.text, text)) {
         matchFound = true;
       }
     });
@@ -586,10 +595,13 @@ export class Linter implements CodeActionProvider {
   private matchesIgnoreText(
     ruleId: string,
     ignoreText: string | undefined,
-    text: string,
+    text: string | undefined,
   ): boolean {
     if (!ignoreText) {
       return true;
+    }
+    if (!text) {
+      return false;
     }
     if (Linter.isSpellingRule(ruleId)) {
       return ignoreText.toLowerCase() === text.toLowerCase();
@@ -844,6 +856,49 @@ export class Linter implements CodeActionProvider {
         }
       }
       if (rule.category) {
+        const catLineIgnoreTitle: string =
+          "Ignore '" +
+          rule.category.name +
+          "' (category=" +
+          rule.category.id +
+          ") on this line";
+        const catLineIgnoreAction: CodeAction = new CodeAction(
+          catLineIgnoreTitle,
+          CodeActionKind.QuickFix,
+        );
+        const catLineIgnoreEdit: WorkspaceEdit = new WorkspaceEdit();
+        const catLine = document.lineAt(diagnostic.range.end.line);
+        catLineIgnoreEdit.insert(
+          document.uri,
+          catLine.range.end,
+          " // @LT-IGNORE:category=" + rule.category.id + "@",
+        );
+        catLineIgnoreAction.edit = catLineIgnoreEdit;
+        catLineIgnoreAction.diagnostics = [];
+        catLineIgnoreAction.diagnostics.push(diagnostic);
+        actions.push(catLineIgnoreAction);
+
+        const catFileIgnoreTitle: string =
+          "Ignore '" +
+          rule.category.name +
+          "' (category=" +
+          rule.category.id +
+          ") in this file";
+        const catFileIgnoreAction: CodeAction = new CodeAction(
+          catFileIgnoreTitle,
+          CodeActionKind.QuickFix,
+        );
+        const catFileIgnoreEdit: WorkspaceEdit = new WorkspaceEdit();
+        catFileIgnoreEdit.insert(
+          document.uri,
+          new Position(0, 0),
+          "// @LT-IGNORE-FILE:category=" + rule.category.id + "@\n",
+        );
+        catFileIgnoreAction.edit = catFileIgnoreEdit;
+        catFileIgnoreAction.diagnostics = [];
+        catFileIgnoreAction.diagnostics.push(diagnostic);
+        actions.push(catFileIgnoreAction);
+
         const usrDisableCategoryTitle: string =
           "Disable '" + rule.category.name + "' Globally";
         const usrDisableCategoryAction: CodeAction = new CodeAction(
@@ -916,7 +971,7 @@ export class Linter implements CodeActionProvider {
     const matches = [
       ...fullText.matchAll(
         new RegExp(
-          "@(LT-)?IGNORE(?<scope>-FILE)?:(?<id>[_A-Z0-9]+)(\\((?<word>[^)]+)\\))?@",
+          "@(LT-)?IGNORE(?<scope>-FILE)?:(?<spec>(?:rule=)?[_A-Z0-9]+(?:\\s+category=[_A-Z0-9]+)?|category=[_A-Z0-9]+)(\\((?<word>[^)]+)\\))?@",
           "gm",
         ),
       ),
@@ -925,10 +980,27 @@ export class Linter implements CodeActionProvider {
     const res = Array<IIgnoreItem>();
     matches.forEach((match: RegExpMatchArray) => {
       if (!match.groups) return;
+      const spec = match.groups["spec"] || "";
+      let ruleId: string | undefined;
+      let category: string | undefined;
+      if (spec.startsWith("category=")) {
+        category = spec.slice("category=".length);
+      } else if (spec.includes(" category=")) {
+        const parts = spec.split(" category=");
+        ruleId = parts[0].startsWith("rule=")
+          ? parts[0].slice("rule=".length)
+          : parts[0];
+        category = parts[1];
+      } else {
+        ruleId = spec.startsWith("rule=")
+          ? spec.slice("rule=".length)
+          : spec;
+      }
       const item: IIgnoreItem = {
         line: document.positionAt(match.index as number).line,
         scope: match.groups && match.groups["scope"] ? "file" : "line",
-        ruleId: match.groups ? match.groups["id"] : "",
+        ruleId,
+        category,
         text: match.groups ? match.groups["word"] : undefined,
       };
       res.push(item);

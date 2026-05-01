@@ -81,8 +81,10 @@ export interface IIgnoreItem {
   line: number;
   // scope of the ignore item
   scope: "line" | "file";
-  // matching linter rule
-  ruleId: string;
+  // matching linter rule (optional when category is given)
+  ruleId?: string;
+  // matching linter category (optional)
+  category?: string;
   // optional matching text
   text?: string;
 }

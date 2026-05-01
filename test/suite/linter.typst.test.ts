@@ -266,6 +266,7 @@ suite("Linter Typst Test Suite", () => {
       helper.checkIfIgnored(
         ignored,
         "MORFOLOGIK_RULE_EN_US",
+        "TYPOS",
         "wordthatdoesntexit",
       ),
       true,
@@ -368,6 +369,154 @@ suite("Linter Typst Test Suite", () => {
         buildLanguageToolMatch("EN_QUOTES", "TYPOGRAPHY"),
       ),
       DiagnosticSeverity.Information,
+    );
+  });
+
+  test("Linter should parse category-only ignore directives", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      content: "// @LT-IGNORE:category=FALSE_FRIENDS@\nSome text\n",
+      language: "typst",
+    });
+    const helper = linter as any;
+    const ignoreList = helper.buildIgnoreList(document) as Array<{
+      ruleId?: string;
+      category?: string;
+      scope: "line" | "file";
+    }>;
+
+    assert.equal(ignoreList.length, 1);
+    assert.equal(ignoreList[0].category, "FALSE_FRIENDS");
+    assert.equal(ignoreList[0].ruleId, undefined);
+    assert.equal(ignoreList[0].scope, "line");
+  });
+
+  test("Linter should parse rule+category ignore directives", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      content: "// @LT-IGNORE-FILE:rule=INTEND category=FALSE_FRIENDS@\n",
+      language: "typst",
+    });
+    const helper = linter as any;
+    const ignoreList = helper.buildIgnoreList(document) as Array<{
+      ruleId?: string;
+      category?: string;
+      scope: "line" | "file";
+    }>;
+
+    assert.equal(ignoreList.length, 1);
+    assert.equal(ignoreList[0].ruleId, "INTEND");
+    assert.equal(ignoreList[0].category, "FALSE_FRIENDS");
+    assert.equal(ignoreList[0].scope, "file");
+  });
+
+  test("Linter should parse rule+category ignore without rule= prefix", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      content: "// @LT-IGNORE:INTEND category=FALSE_FRIENDS@\n",
+      language: "typst",
+    });
+    const helper = linter as any;
+    const ignoreList = helper.buildIgnoreList(document) as Array<{
+      ruleId?: string;
+      category?: string;
+    }>;
+
+    assert.equal(ignoreList.length, 1);
+    assert.equal(ignoreList[0].ruleId, "INTEND");
+    assert.equal(ignoreList[0].category, "FALSE_FRIENDS");
+  });
+
+  test("Linter should ignore all rules in a category when category directive is used", () => {
+    const helper = linter as any;
+    const ignored = [
+      { line: 0, scope: "file" as const, category: "FALSE_FRIENDS" },
+    ];
+
+    assert.equal(
+      helper.checkIfIgnored(ignored, "INTEND", "FALSE_FRIENDS", "intend"),
+      true,
+      "Expected category ignore to match any rule in that category.",
+    );
+    assert.equal(
+      helper.checkIfIgnored(ignored, "FABRIC", "FALSE_FRIENDS", "fabric"),
+      true,
+      "Expected category ignore to match another rule in that category.",
+    );
+    assert.equal(
+      helper.checkIfIgnored(ignored, "INTEND", "GRAMMAR", "intend"),
+      false,
+      "Expected category ignore not to match a different category.",
+    );
+  });
+
+  test("Linter should ignore a rule only when both rule and category match", () => {
+    const helper = linter as any;
+    const ignored = [
+      {
+        line: 0,
+        scope: "file" as const,
+        ruleId: "INTEND",
+        category: "FALSE_FRIENDS",
+      },
+    ];
+
+    assert.equal(
+      helper.checkIfIgnored(ignored, "INTEND", "FALSE_FRIENDS", "intend"),
+      true,
+      "Expected rule+category ignore to match when both match.",
+    );
+    assert.equal(
+      helper.checkIfIgnored(ignored, "INTEND", "GRAMMAR", "intend"),
+      false,
+      "Expected rule+category ignore not to match when category differs.",
+    );
+    assert.equal(
+      helper.checkIfIgnored(ignored, "FABRIC", "FALSE_FRIENDS", "fabric"),
+      false,
+      "Expected rule+category ignore not to match when rule differs.",
+    );
+  });
+
+  test("Linter should offer category line and file ignore quick fixes", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      content: "Some text\n",
+      language: "typst",
+    });
+    const diagnostic = new Diagnostic(
+      new Range(new Position(0, 0), new Position(0, 4)),
+      "False friend",
+      DiagnosticSeverity.Warning,
+    ) as Diagnostic & { match: ILanguageToolMatch };
+    diagnostic.source = "LanguageTool Typst";
+    diagnostic.match = buildLanguageToolMatch("INTEND", "FALSE_FRIENDS");
+    diagnostic.match.rule.description = "False friend";
+    diagnostic.match.rule.category.name = "False Friends";
+
+    const actions = linter.provideCodeActions(
+      document,
+      diagnostic.range,
+      { diagnostics: [diagnostic] } as never,
+      {} as never,
+    );
+    const catLineAction = actions.find(
+      (action) =>
+        action.title ===
+        "Ignore 'False Friends' (category=FALSE_FRIENDS) on this line",
+    );
+    const catFileAction = actions.find(
+      (action) =>
+        action.title ===
+        "Ignore 'False Friends' (category=FALSE_FRIENDS) in this file",
+    );
+
+    assert.ok(catLineAction, "Expected a category line ignore quick fix.");
+    assert.deepEqual(
+      catLineAction?.edit?.get(document.uri)?.map((edit) => edit.newText),
+      [" // @LT-IGNORE:category=FALSE_FRIENDS@"],
+    );
+
+    assert.ok(catFileAction, "Expected a category file ignore quick fix.");
+    assert.deepEqual(
+      catFileAction?.edit?.get(document.uri)?.map((edit) => edit.newText),
+      ["// @LT-IGNORE-FILE:category=FALSE_FRIENDS@\n"],
     );
   });
 });
