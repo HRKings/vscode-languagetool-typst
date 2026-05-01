@@ -412,7 +412,7 @@ export class Linter implements CodeActionProvider {
     }
     this.warnedVariantMismatchUris.add(uriKey);
     Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
-      `WARN: detected ${detected} but languageToolLinter.languageTool.preferredVariants has no en-* — LanguageTool used its default English variant. Add e.g. en-US to preferredVariants for consistent results. (uri=${uriKey})`,
+      `WARN: detected ${detected} but languageToolTypst.languageTool.preferredVariants has no en-* — LanguageTool used its default English variant. Add e.g. en-US to preferredVariants for consistent results. (uri=${uriKey})`,
     );
   }
 
@@ -581,7 +581,7 @@ export class Linter implements CodeActionProvider {
           );
           action.command = {
             arguments: [word],
-            command: "languagetoolLinter.removeGloballyIgnoredWord",
+            command: "languageToolTypst.removeGloballyIgnoredWord",
             title: actionTitle,
           };
           action.diagnostics = [];
@@ -597,7 +597,7 @@ export class Linter implements CodeActionProvider {
           );
           action.command = {
             arguments: [word],
-            command: "languagetoolLinter.removeWorkspaceIgnoredWord",
+            command: "languageToolTypst.removeWorkspaceIgnoredWord",
             title: actionTitle,
           };
           action.diagnostics = [];
@@ -613,7 +613,7 @@ export class Linter implements CodeActionProvider {
       );
       usrIgnoreAction.command = {
         arguments: [word],
-        command: "languagetoolLinter.ignoreWordGlobally",
+        command: "languageToolTypst.ignoreWordGlobally",
         title: usrIgnoreActionTitle,
       };
       usrIgnoreAction.diagnostics = [];
@@ -628,7 +628,7 @@ export class Linter implements CodeActionProvider {
         );
         wsIgnoreAction.command = {
           arguments: [word],
-          command: "languagetoolLinter.ignoreWordInWorkspace",
+          command: "languageToolTypst.ignoreWordInWorkspace",
           title: wsIgnoreActionTitle,
         };
         wsIgnoreAction.diagnostics = [];
@@ -714,7 +714,7 @@ export class Linter implements CodeActionProvider {
         );
         usrDisableRuleAction.command = {
           arguments: [rule.id, ConfigurationTarget.Global],
-          command: "languagetoolLinter.disableRule",
+          command: "languageToolTypst.disableRule",
           title: usrDisableRuleTitle,
         };
         usrDisableRuleAction.diagnostics = [];
@@ -730,7 +730,7 @@ export class Linter implements CodeActionProvider {
           );
           wsDisableRuleAction.command = {
             arguments: [rule.id, ConfigurationTarget.Workspace],
-            command: "languagetoolLinter.disableRule",
+            command: "languageToolTypst.disableRule",
             title: wsDisableRuleTitle,
           };
           wsDisableRuleAction.diagnostics = [];
@@ -747,7 +747,7 @@ export class Linter implements CodeActionProvider {
         );
         usrDisableCategoryAction.command = {
           arguments: [rule.category.id, ConfigurationTarget.Global],
-          command: "languagetoolLinter.disableCategory",
+          command: "languageToolTypst.disableCategory",
           title: usrDisableCategoryTitle,
         };
         usrDisableCategoryAction.diagnostics = [];
@@ -763,7 +763,7 @@ export class Linter implements CodeActionProvider {
           );
           wsDisableCategoryAction.command = {
             arguments: [rule.id, ConfigurationTarget.Workspace],
-            command: "languagetoolLinter.disableCategory",
+            command: "languageToolTypst.disableCategory",
             title: wsDisableCategoryTitle,
           };
           wsDisableCategoryAction.diagnostics = [];

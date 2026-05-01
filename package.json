@@ -81,50 +81,50 @@
   "contributes": {
     "commands": [
       {
-        "command": "languagetoolLinter.checkDocument",
-        "title": "Check Document",
-        "category": "LanguageTool Linter"
+        "command": "languageToolTypst.checkDocument",
+        "title": "Check Typst Document",
+        "category": "LanguageTool Typst"
       },
       {
-        "command": "languagetoolLinter.clearDocumentDiagnostics",
-        "title": "Clear Document Diagnostics",
-        "category": "LanguageTool Linter"
+        "command": "languageToolTypst.clearDocumentDiagnostics",
+        "title": "Clear Typst Diagnostics",
+        "category": "LanguageTool Typst"
       },
       {
-        "command": "languagetoolLinter.toggleSuspendLinting",
-        "title": "Toggle LanguageTool Linting on/off (temporarily). Linting on demand remains available.",
-        "category": "LanguageTool Linter"
+        "command": "languageToolTypst.toggleSuspendLinting",
+        "title": "Toggle LanguageTool Typst Linting on/off (temporarily). Linting on demand remains available.",
+        "category": "LanguageTool Typst"
       }
     ],
     "menus": {
       "commandPalette": [
         {
-          "command": "languagetoolLinter.checkDocument",
+          "command": "languageToolTypst.checkDocument",
           "when": "editorLangId == typst"
         },
         {
-          "command": "languagetoolLinter.clearDocumentDiagnostics"
+          "command": "languageToolTypst.clearDocumentDiagnostics"
         }
       ],
       "editor/context": [
         {
-          "command": "languagetoolLinter.checkDocument",
-          "title": "LanguageTool: Check Document",
+          "command": "languageToolTypst.checkDocument",
+          "title": "LanguageTool Typst: Check Document",
           "when": "editorLangId == typst",
-          "group": "LanguageTool"
+          "group": "LanguageToolTypst"
         },
         {
-          "command": "languagetoolLinter.clearDocumentDiagnostics",
-          "title": "LanguageTool: Clear Document Diagnotics",
-          "group": "LanguageTool"
+          "command": "languageToolTypst.clearDocumentDiagnostics",
+          "title": "LanguageTool Typst: Clear Document Diagnostics",
+          "group": "LanguageToolTypst"
         }
       ]
     },
     "configuration": {
       "type": "object",
-      "title": "LanguageTool Linter",
+      "title": "LanguageTool Typst",
       "properties": {
-        "languageToolLinter.diagnosticSeverity": {
+        "languageToolTypst.diagnosticSeverity": {
           "type": "string",
           "default": "warning",
           "description": "Set the severity level for LanguageTool diagnostics.",
@@ -134,42 +134,42 @@
             "error"
           ]
         },
-        "languageToolLinter.diagnosticSeverityAuto": {
+        "languageToolTypst.diagnosticSeverityAuto": {
           "type": "boolean",
           "default": false,
           "description": "Spelling mistakes will be set as Error, while punctuation, grammar and typography mistakes as Warning. Anything else as the configured Diagnostic Severity level (recommended to be set as Information when using this option)."
         },
-        "languageToolLinter.hideDiagnosticsOnChange": {
+        "languageToolTypst.hideDiagnosticsOnChange": {
           "type": "boolean",
           "default": false,
           "description": "Hide diagnostic messages on document changes. Most noticable when used with 'Lint on Change'."
         },
-        "languageToolLinter.hideRuleIds": {
+        "languageToolTypst.hideRuleIds": {
           "type": "boolean",
           "default": false,
           "description": "Hide Rule IDs in messages."
         },
-        "languageToolLinter.debug": {
+        "languageToolTypst.debug": {
           "type": "boolean",
           "default": false,
-          "description": "Write verbose LanguageTool Linter debug information to the output channel."
+          "description": "Write verbose LanguageTool Typst debug information to the output channel."
         },
-        "languageToolLinter.lintOnChange": {
+        "languageToolTypst.lintOnChange": {
           "type": "boolean",
           "default": false,
           "description": "Lint every time the document changes. Use with caution."
         },
-        "languageToolLinter.lintOnSave": {
+        "languageToolTypst.lintOnSave": {
           "type": "boolean",
           "default": true,
           "description": "Lint documents when they're saved."
         },
-        "languageToolLinter.lintOnOpen": {
+        "languageToolTypst.lintOnOpen": {
           "type": "boolean",
           "default": false,
           "description": "Lint documents when they're opened."
         },
-        "languageToolLinter.serviceType": {
+        "languageToolTypst.serviceType": {
           "type": "string",
           "default": "external",
           "description": "What kind of LanguageTool service to use: external (default), public, or managed.",
@@ -180,50 +180,50 @@
           ],
           "enumDescriptions": [
             "Provide a URL to an external LanguageTool service. Defaults to 'http://localhost:8081'. Specify the URL in 'External: Url'.",
-            "Let LanguageTool Linter manage a local service. Specify the classpath or LanguageTool jar file in 'Managed: Class Path'.",
+            "Let LanguageTool Typst manage a local service. Specify the classpath or LanguageTool jar file in 'Managed: Class Path'.",
             "Use the public LanguageTool API Service at https://languagetool.org/api."
           ]
         },
-        "languageToolLinter.external.url": {
+        "languageToolTypst.external.url": {
           "type": "string",
           "default": "http://localhost:8081",
           "description": "URL of your LanguageTool server. Defaults to localhost on port 8081."
         },
-        "languageToolLinter.external.username": {
+        "languageToolTypst.external.username": {
           "type": "string",
           "default": "",
           "description": "Set to get Premium API access if you use the languagetool.org api instance: your username/email as used to log in at languagetool.org."
         },
-        "languageToolLinter.external.apiKey": {
+        "languageToolTypst.external.apiKey": {
           "type": "string",
           "default": "",
           "description": "Set to get Premium API access if you use the languagetool.org api instance: your API key."
         },
-        "languageToolLinter.managed.classPath": {
+        "languageToolTypst.managed.classPath": {
           "type": "string",
           "default": "",
           "markdownDescription": "Custom classpath for managed server. Separate multiple paths using the native filesystem separator. Supports file globbing via [node-glob](https://github.com/isaacs/node-glob)."
         },
-        "languageToolLinter.managed.jarFile": {
+        "languageToolTypst.managed.jarFile": {
           "type": "string",
           "default": "",
           "description": "DEPRECATED. Path to languagetool-server.jar on your local machine."
         },
-        "languageToolLinter.managed.portMinimum": {
+        "languageToolTypst.managed.portMinimum": {
           "type": "number",
           "minimum": 1024,
           "maximum": 65535,
           "default": 9500,
           "description": "Minimum port number to use for managed service."
         },
-        "languageToolLinter.managed.portMaximum": {
+        "languageToolTypst.managed.portMaximum": {
           "type": "number",
           "minimum": 1024,
           "maximum": 65535,
           "default": 65535,
           "description": "Minimum port number to use for managed service."
         },
-        "languageToolLinter.languageTool.language": {
+        "languageToolTypst.languageTool.language": {
           "type": "string",
           "default": "auto",
           "description": "A language code like en-US, de-DE, fr, or auto to guess the language automatically (see preferredVariants below). For languages with variants (English, German, Portuguese) spell checking will only be activated when you specify the variant, e.g. en-GB instead of just en.",
@@ -320,7 +320,7 @@
             "Ukrainian"
           ]
         },
-        "languageToolLinter.languageTool.motherTongue": {
+        "languageToolTypst.languageTool.motherTongue": {
           "type": "string",
           "default": "",
           "description": "A language code of the user's native language, enabling false friends checks for some language pairs.",
@@ -417,22 +417,22 @@
             "Ukrainian"
           ]
         },
-        "languageToolLinter.languageTool.preferredVariants": {
+        "languageToolTypst.languageTool.preferredVariants": {
           "type": "string",
           "default": "",
           "description": "Comma-separated list of preferred language variants. The language detector used with language=auto can detect e.g. English, but it cannot decide whether British English or American English is used. Thus this parameter can be used to specify the preferred variants like en-GB and de-AT. Only available with language=auto."
         },
-        "languageToolLinter.languageTool.disabledRules": {
+        "languageToolTypst.languageTool.disabledRules": {
           "type": "string",
           "default": "",
           "description": "IDs of rules to be disabled, comma-separated, no spaces. These IDs are passed directly to the LanguageTool service and will not be returned with diagnostics."
         },
-        "languageToolLinter.languageTool.disabledCategories": {
+        "languageToolTypst.languageTool.disabledCategories": {
           "type": "string",
           "default": "",
           "description": "IDs of categories to be disabled, comma-separated, no spaces. These IDs are passed directly to the LanguageTool service and will not be returned with diagnostics."
         },
-        "languageToolLinter.languageTool.level": {
+        "languageToolTypst.languageTool.level": {
           "type": "string",
           "default": "",
           "description": "If set to picky, additional rules will be activated, i.e. rules that you might only find useful when checking formal text.",
@@ -447,7 +447,7 @@
             "Picky Mode"
           ]
         },
-        "languageToolLinter.languageTool.ignoredWordsGlobal": {
+        "languageToolTypst.languageTool.ignoredWordsGlobal": {
           "type": "array",
           "items": {
             "type": "string"
@@ -456,7 +456,7 @@
           "default": [],
           "description": "Global list of words to ignore in spellcheck."
         },
-        "languageToolLinter.languageTool.ignoredWordsInWorkspace": {
+        "languageToolTypst.languageTool.ignoredWordsInWorkspace": {
           "type": "array",
           "items": {
             "type": "string"
@@ -465,12 +465,12 @@
           "default": [],
           "description": "Workspace list of words to ignore in spellcheck. This setting is ignored at the User (Global) level."
         },
-        "languageToolLinter.languageTool.ignoredWordHint": {
+        "languageToolTypst.languageTool.ignoredWordHint": {
           "type": "boolean",
           "default": true,
           "description": "Shows a hint for ignored words, providing a Quick Fix to remove the word from the ignored list."
         },
-        "languageToolLinter.disabledLanguageIds": {
+        "languageToolTypst.disabledLanguageIds": {
           "type": "array",
           "items": {
             "type": "string"

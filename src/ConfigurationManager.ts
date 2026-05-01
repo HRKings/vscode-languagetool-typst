@@ -62,7 +62,7 @@ export class ConfigurationManager implements Disposable {
     this.serviceUrl = this.findServiceUrl(this.getServiceType());
     this.serviceParameters = this.buildServiceParameters();
     // Changed service type
-    if (event.affectsConfiguration("languageToolLinter.serviceType")) {
+    if (event.affectsConfiguration("languageToolTypst.serviceType")) {
       switch (this.getServiceType()) {
         case Constants.SERVICE_TYPE_MANAGED:
           this.startManagedService();
@@ -75,19 +75,19 @@ export class ConfigurationManager implements Disposable {
     // Changed class path for managed service
     if (
       this.getServiceType() === Constants.SERVICE_TYPE_MANAGED &&
-      (event.affectsConfiguration("languageToolLinter.managed.classPath") ||
-        event.affectsConfiguration("languageToolLinter.managed.jarFile") ||
-        event.affectsConfiguration("languageToolLinter.managed.portMinimum") ||
-        event.affectsConfiguration("languageToolLinter.managed.portMaximum"))
+      (event.affectsConfiguration("languageToolTypst.managed.classPath") ||
+        event.affectsConfiguration("languageToolTypst.managed.jarFile") ||
+        event.affectsConfiguration("languageToolTypst.managed.portMinimum") ||
+        event.affectsConfiguration("languageToolTypst.managed.portMaximum"))
     ) {
       this.startManagedService();
     }
     // Only allow preferred variants when language === auto
     if (
       event.affectsConfiguration(
-        "languageToolLinter.languageTool.preferredVariants",
+        "languageToolTypst.languageTool.preferredVariants",
       ) ||
-      event.affectsConfiguration("languageToolLinter.languageTool.language")
+      event.affectsConfiguration("languageToolTypst.languageTool.language")
     ) {
       if (
         this.config.get("languageTool.language") !== "auto" &&
@@ -100,7 +100,7 @@ export class ConfigurationManager implements Disposable {
       }
     }
     // Disabled language ids changed - need to reload
-    if (event.affectsConfiguration("languageToolLinter.disabledLanguageIds")) {
+    if (event.affectsConfiguration("languageToolTypst.disabledLanguageIds")) {
       const action = "Reload";
       window
         .showInformationMessage(
@@ -243,7 +243,7 @@ export class ConfigurationManager implements Disposable {
       return DiagnosticSeverity.Warning;
     } else {
       window.showWarningMessage(
-        '"LanguageTool Linter > Diagnostic Severity" is unknown. Defaulting to "Warning".',
+        '"LanguageTool Typst > Diagnostic Severity" is unknown. Defaulting to "Warning".',
       );
       return DiagnosticSeverity.Warning;
     }
@@ -268,7 +268,7 @@ export class ConfigurationManager implements Disposable {
     // DEPRECATED
     if (jarFile !== "") {
       window.showWarningMessage(
-        '"LanguageTool Linter > Managed: Jar File" is deprecated. \
+        '"LanguageTool Typst > Managed: Jar File" is deprecated. \
         Please use "LanguageTool > Managed: Class Path" instead.',
       );
       classPathFiles.push(jarFile);
@@ -421,7 +421,7 @@ export class ConfigurationManager implements Disposable {
       ) as string;
       if (disabledRules.split(" ").length > 1) {
         window.showWarningMessage(
-          '"LanguageTool Linter > Language Tool: Disabled Rules" contains spaces. \
+          '"LanguageTool Typst > Language Tool: Disabled Rules" contains spaces. \
           Please review the setting and remove any spaces.',
         );
       }
@@ -432,7 +432,7 @@ export class ConfigurationManager implements Disposable {
       ) as string;
       if (disabledCategories.split(" ").length > 1) {
         window.showWarningMessage(
-          '"LanguageTool Linter > Language Tool: Disabled Categories" contains spaces. \
+          '"LanguageTool Typst > Language Tool: Disabled Categories" contains spaces. \
           Please review the setting and remove any spaces.',
         );
       }
@@ -472,7 +472,7 @@ export class ConfigurationManager implements Disposable {
       this.stopManagedService();
       if (minimumPort > maximumPort) {
         window.showWarningMessage(
-          "LanguageTool Linter - The minimum port is greater than the maximum port. \
+          "LanguageTool Typst - The minimum port is greater than the maximum port. \
           Cancelling start of managed service. Please adjust your settings and try again.",
         );
       } else {

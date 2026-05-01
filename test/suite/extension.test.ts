@@ -30,7 +30,7 @@ suite("Extension Test Suite", () => {
       const FOUND_COMMANDS = commands.filter((value) => {
         return (
           Constants.COMMAND_STRINGS.indexOf(value) >= 0 ||
-          value.startsWith("languagetoolLinter.")
+          value.startsWith("languageToolTypst.")
         );
       });
       const MISSING_COMMANDS = Constants.COMMAND_STRINGS.filter(

@@ -50,13 +50,13 @@ export async function activate(
 
   context.subscriptions.push(Constants.EXTENSION_OUTPUT_CHANNEL);
   Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
-    "LanguageTool Linter Activated!",
+    "LanguageTool Typst Activated!",
   );
 
   // Register onDidChangeConfiguration event
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration("languageToolLinter")) {
+      if (event.affectsConfiguration("languageToolTypst")) {
         configMan.reloadConfiguration(event);
       }
     }),

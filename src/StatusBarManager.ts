@@ -29,7 +29,7 @@ export class StatusBarManager implements vscode.Disposable {
     this.configManager = configManager;
     this.refreshToolTip();
     this.setIdle();
-    this.statusBarItem.command = "languagetoolLinter.checkDocument";
+    this.statusBarItem.command = "languageToolTypst.checkDocument";
     this.show();
   }
 
@@ -43,13 +43,13 @@ export class StatusBarManager implements vscode.Disposable {
 
   public setChecking(): void {
     if (this.statusBarItem) {
-      this.statusBarItem.text = `$(loading~spin) LT`;
+      this.statusBarItem.text = `$(loading~spin) LT Typst`;
     }
   }
 
   public setIdle(): void {
     if (this.statusBarItem) {
-      this.statusBarItem.text = `$(book) LT`;
+      this.statusBarItem.text = `$(book) LT Typst`;
     }
   }
 

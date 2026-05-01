@@ -12,7 +12,7 @@
     },
     // Turn off tsc task auto detection since we have the necessary tasks as Bun scripts
     "typescript.tsc.autoDetect": "off",
-    "languageToolLinter.languageTool.ignoredWordsInWorkspace": [
+    "languageToolTypst.languageTool.ignoredWordsInWorkspace": [
         "annotatedtext",
         "annotatedtext-remark",
         "api",
@@ -21,7 +21,7 @@
         "de-de",
         "globbing",
         "http-proxy-agent",
-        "languagetool-linter",
+        "vscode-languagetool-typst",
         "linter",
         "localhost",
         "lt<sub>e</sub>x",
@@ -34,5 +34,5 @@
         "webpack",
         "yaml"
     ],
-    "languageToolLinter.languageTool.disabledRules": "DASH_RULE"
+    "languageToolTypst.languageTool.disabledRules": "DASH_RULE"
 }

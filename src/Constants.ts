@@ -19,9 +19,9 @@ import { OutputChannel, window } from "vscode";
 // General Extension
 export const EXTENSION_TIMEOUT_MS = 500;
 export const EXTENSION_OUTPUT_CHANNEL: OutputChannel =
-  window.createOutputChannel("LanguageTool Linter");
-export const EXTENSION_DISPLAY_NAME = "languagetool-linter";
-export const EXTENSION_DIAGNOSTIC_SOURCE = "LanguageTool";
+  window.createOutputChannel("LanguageTool Typst");
+export const EXTENSION_DISPLAY_NAME = "vscode-languagetool-typst";
+export const EXTENSION_DIAGNOSTIC_SOURCE = "LanguageTool Typst";
 
 // Programming Language IDs
 export const LANGUAGE_ID_TYPST = "typst";
@@ -35,7 +35,7 @@ export const SCHEME_FILE = "file";
 export const SCHEME_UNTITLED = "untitled";
 
 // Configuration Strings
-export const CONFIGURATION_ROOT = "languageToolLinter";
+export const CONFIGURATION_ROOT = "languageToolTypst";
 export const CONFIGURATION_GLOBAL_IGNORED_WORDS =
   "languageTool.ignoredWordsGlobal";
 export const CONFIGURATION_WORKSPACE_IGNORED_WORDS =
@@ -78,19 +78,19 @@ export const SERVICE_RULE_URL_LANG_DEFAULT = "en";
 export const SERVICE_RULE_URL_GENERIC_LABEL = "details";
 
 // Extension Commands
-export const COMMAND_CHECK_DOCUMENT = "languagetoolLinter.checkDocument";
+export const COMMAND_CHECK_DOCUMENT = "languageToolTypst.checkDocument";
 export const COMMAND_CLEAR_DIAGNOSTICS =
-  "languagetoolLinter.clearDocumentDiagnostics";
-export const COMMAND_IGNORE_USR_WORD = "languagetoolLinter.ignoreWordGlobally";
+  "languageToolTypst.clearDocumentDiagnostics";
+export const COMMAND_IGNORE_USR_WORD = "languageToolTypst.ignoreWordGlobally";
 export const COMMAND_IGNORE_WS_WORD =
-  "languagetoolLinter.ignoreWordInWorkspace";
+  "languageToolTypst.ignoreWordInWorkspace";
 export const COMMAND_REMOVE_USR_IGNORED_WORD =
-  "languagetoolLinter.removeGloballyIgnoredWord";
+  "languageToolTypst.removeGloballyIgnoredWord";
 export const COMMAND_REMOVE_WS_IGNORED_WORD =
-  "languagetoolLinter.removeWorkspaceIgnoredWord";
-export const COMMAND_DISABLE_RULE = "languagetoolLinter.disableRule";
-export const COMMAND_DISABLE_CATEGORY = "languagetoolLinter.disableCategory";
-export const COMMAND_TOGGLE_LINTING = "languagetoolLinter.toggleSuspendLinting";
+  "languageToolTypst.removeWorkspaceIgnoredWord";
+export const COMMAND_DISABLE_RULE = "languageToolTypst.disableRule";
+export const COMMAND_DISABLE_CATEGORY = "languageToolTypst.disableCategory";
+export const COMMAND_TOGGLE_LINTING = "languageToolTypst.toggleSuspendLinting";
 export const COMMAND_STRINGS = [
   COMMAND_CHECK_DOCUMENT,
   COMMAND_CLEAR_DIAGNOSTICS,

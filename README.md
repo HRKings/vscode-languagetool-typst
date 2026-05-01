@@ -63,9 +63,9 @@ If this doesn't work for you, here are your options.
 This could either be a locally running instance of LanguageTool, or the service
 running somewhere else.
 
-1. Set the URL in “LanguageTool Linter > External: URL” (i.e.
+1. Set the URL in “LanguageTool Typst > External: URL” (i.e.
    `http://localhost:8081`).
-1. Set “LanguageTool Linter: Service Type” to `external`.
+1. Set “LanguageTool Typst: Service Type” to `external`.
 
 ![External URL](images/external.gif)
 
@@ -74,9 +74,9 @@ running somewhere else.
 Works well if you're only using LanguageTool in Visual Studio Code.
 
 1. Install LanguageTool locally.
-1. Set “LanguageTool Linter > Managed: Jar File” to the location of the
+1. Set “LanguageTool Typst > Managed: Jar File” to the location of the
    `languagetool-server.jar` file.
-1. Set “LanguageTool Linter: Service Type” to `managed`.
+1. Set “LanguageTool Typst: Service Type” to `managed`.
 
 ![Managed Service](images/managed.gif)
 
@@ -86,7 +86,7 @@ Make sure you read and understand
 [LanguageTool's Public API](https://dev.languagetool.org/public-http-api) before
 doing this.
 
-1. Set “LanguageTool Linter: Service Type” to `public`.
+1. Set “LanguageTool Typst: Service Type” to `public`.
 
 ![Public API](images/public.gif)
 
@@ -102,6 +102,10 @@ bunx vsce package
 ```
 
 ## Configuration Notes
+
+Settings for this extension live under the `languageToolTypst.*` namespace so it
+can be installed alongside the original LanguageTool linter without sharing
+configuration state.
 
 Most configuration items should be safe, but there are three you should pay
 particular attention to:
