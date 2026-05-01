@@ -481,19 +481,9 @@ export class Linter implements CodeActionProvider {
     this.statusBarManager.setLtSoftware(response.software);
     const matches = response.matches;
     const diagnostics: LTDiagnostic[] = [];
-    let ignoredMatchCount = 0;
     matches.forEach((match: ILanguageToolMatch) => {
       const start: Position = document.positionAt(match.offset);
       const end: Position = document.positionAt(match.offset + match.length);
-      if (this.shouldIgnoreTypstMatch(document, start, match)) {
-        ignoredMatchCount++;
-        this.debugLog(
-          `Ignored Typst match: ${match.rule.id} at ${this.formatPosition(
-            start,
-          )} text=${JSON.stringify(document.getText(new Range(start, end)))}`,
-        );
-        return;
-      }
       const ignored: IIgnoreItem[] = this.getIgnoreList(document, start);
       const diagnosticSeverity: DiagnosticSeverity =
         this.configManager.getDiagnosticSeverity();
@@ -548,27 +538,8 @@ export class Linter implements CodeActionProvider {
     this.debugLog(
       `Diagnostics set: uri=${document.uri.toString()} diagnostics=${
         diagnostics.length
-      } ignored=${ignoredMatchCount}`,
+      }`,
     );
-  }
-
-  private shouldIgnoreTypstMatch(
-    document: TextDocument,
-    start: Position,
-    match: ILanguageToolMatch,
-  ): boolean {
-    if (
-      document.languageId !== Constants.LANGUAGE_ID_TYPST ||
-      match.rule.id !== "ENGLISH_WORD_REPEAT_BEGINNING_RULE"
-    ) {
-      return false;
-    }
-
-    const linePrefix = document.lineAt(start.line).text.slice(
-      0,
-      start.character,
-    );
-    return /^\s*[-+]\s*$/.test(linePrefix);
   }
 
   /**

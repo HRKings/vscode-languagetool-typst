@@ -67,7 +67,11 @@ export const SERVICE_PARAMETERS: string[] = [
   "disabledRules",
   "level",
 ];
-export const TYPST_DISABLED_RULES: string[] = ["EN_QUOTES", "ELLIPSIS"];
+// ELLIPSIS stays disabled because the grammar emits Typst's `...` shorthand
+// as a `shorthand` node rather than a real ellipsis, so the rule fires on
+// markup the user wrote intentionally. EN_QUOTES is now safe with the
+// prose-focus grammar's smart-quote handling.
+export const TYPST_DISABLED_RULES: string[] = ["ELLIPSIS"];
 export const SERVICE_RULE_BASE_URI =
   "https://community.languagetool.org/rule/show/";
 export const SERVICE_RULE_URL_LANG_DEFAULT = "en";

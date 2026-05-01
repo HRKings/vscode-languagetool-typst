@@ -19,8 +19,11 @@ import * as fs from "fs";
 import { Language, Node, Parser } from "web-tree-sitter";
 
 const PROSE_LEAF_TYPES = new Set(["text"]);
-const QUOTE_TYPES = new Set(["quote"]);
 const PARBREAK_TYPES = new Set(["parbreak"]);
+// Structural marker nodes emitted by the prose-focus grammar fork. These
+// represent list/bullet markers (`-`, `+`, `1.`, `•`, `—`, …) and are
+// excluded from prose so LanguageTool doesn't flag them.
+const MARKER_TYPES = new Set(["item_marker", "prose_marker"]);
 const RECURSE_TYPES = new Set([
   "source_file",
   "section",
@@ -30,12 +33,6 @@ const RECURSE_TYPES = new Set([
   "call",
   "item",
 ]);
-
-// Dash-like / bullet-like chars that start a custom-bullet prose line.
-// When a `text` node begins with these followed by spaces/tabs, the prefix is
-// treated as markup so LanguageTool doesn't see e.g. "—  Sentence" as a
-// repeated-whitespace typo.
-const BULLET_PREFIX_REGEX = /^[‐-―•‣⁃·◦][ \t]+/;
 
 export class TypstTreeSitterAnnotatedTextBuilder {
   private static initPromise: Promise<void> | undefined;
@@ -78,19 +75,11 @@ export class TypstTreeSitterAnnotatedTextBuilder {
     const type = node.type;
 
     if (PROSE_LEAF_TYPES.has(type)) {
-      const slice = text.slice(node.startIndex, node.endIndex);
-      const bulletMatch = slice.match(BULLET_PREFIX_REGEX);
-      const proseStart = node.startIndex + (bulletMatch?.[0].length ?? 0);
-      this.fillRange(included, proseStart, node.endIndex, true);
-      return;
-    }
-
-    if (QUOTE_TYPES.has(type) && this.isApostropheInWord(text, node)) {
       this.fillRange(included, node.startIndex, node.endIndex, true);
       return;
     }
 
-    if (PARBREAK_TYPES.has(type)) {
+    if (MARKER_TYPES.has(type) || PARBREAK_TYPES.has(type)) {
       return;
     }
 
@@ -173,14 +162,5 @@ export class TypstTreeSitterAnnotatedTextBuilder {
 
   private isWordCharacter(character: string | undefined): boolean {
     return character !== undefined && /[\p{L}\p{N}]/u.test(character);
-  }
-
-  private isApostropheInWord(text: string, node: Node): boolean {
-    const slice = text.slice(node.startIndex, node.endIndex);
-    return (
-      (slice === "'" || slice === "’") &&
-      this.isWordCharacter(text[node.startIndex - 1]) &&
-      this.isWordCharacter(text[node.endIndex])
-    );
   }
 }
