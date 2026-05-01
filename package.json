@@ -50,7 +50,7 @@
     "glob": "^13.0.6",
     "node-fetch": "^3.3.2",
     "portfinder": "^1.0.38",
-    "web-tree-sitter": "^0.25.10"
+    "web-tree-sitter": "^0.26.8"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
