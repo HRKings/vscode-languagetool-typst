@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build resources/tree-sitter-typst.wasm from the prose-focused grammar fork.
 # Requires: docker (tree-sitter-cli uses emscripten/emsdk:4.0.4 to build wasm).
-# tree-sitter-cli is pulled in via npm devDependencies.
+# tree-sitter-cli is pulled in via Bun-managed devDependencies.
 
 set -euo pipefail
 
@@ -13,7 +13,7 @@ OUTPUT="$REPO_ROOT/resources/tree-sitter-typst.wasm"
 TS_BIN="$REPO_ROOT/node_modules/.bin/tree-sitter"
 
 if [[ ! -x "$TS_BIN" ]]; then
-  echo "tree-sitter-cli not found at $TS_BIN. Run 'npm install' first." >&2
+  echo "tree-sitter-cli not found at $TS_BIN. Run 'bun install' first." >&2
   exit 1
 fi
 

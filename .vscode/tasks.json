@@ -4,8 +4,10 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "npm",
-			"script": "watch",
+			"label": "bun: watch",
+			"type": "shell",
+			"command": "bun",
+			"args": ["run", "watch"],
 			"problemMatcher": ["$ts-webpack-watch", "$tslint-webpack-watch"],
 			"isBackground": true,
 			"presentation": {
@@ -15,6 +17,20 @@
 				"kind": "build",
 				"isDefault": true
 			}
+		},
+		{
+			"label": "bun: test-compile",
+			"type": "shell",
+			"command": "bun",
+			"args": ["run", "test-compile"],
+			"problemMatcher": []
+		},
+		{
+			"label": "bun: main-dist",
+			"type": "shell",
+			"command": "bun",
+			"args": ["run", "main-dist"],
+			"problemMatcher": []
 		}
 	]
 }

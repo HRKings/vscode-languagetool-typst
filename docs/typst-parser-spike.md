@@ -11,7 +11,7 @@
 ## What was built
 
 1. **Vendored grammar artifact** — `resources/tree-sitter-typst.wasm` (760 KB), built from `uben0/tree-sitter-typst@46cf4ded` via `tree-sitter build --wasm` (uses `emscripten/emsdk:4.0.4` under Docker).
-2. **Reproducible build script** — `scripts/build-typst-wasm.sh`. Pulls grammar at pinned commit, runs `tree-sitter-cli` (npm devDep, pinned to `0.25.10` to ABI-match `web-tree-sitter@0.25.10`).
+2. **Reproducible build script** — `scripts/build-typst-wasm.sh`. Pulls grammar at pinned commit, runs `tree-sitter-cli` (Bun-managed devDependency, pinned to `0.25.10` to ABI-match `web-tree-sitter@0.25.10`).
 3. **New builder** — `src/TypstTreeSitterAnnotatedTextBuilder.ts`. Same `build(text): Promise<IAnnotatedtext>` shape as the old one. Static `init(wasmPath)` loads the grammar once.
 4. **Activation wiring** — `src/extension.ts:activate()` is now `async` and calls `init()` when the spike flag is set, before constructing `Linter`.
 5. **Builder dispatch** — `src/Linter.ts` selects builder via `process.env.LTL_TREE_SITTER === "1"`. Spike-only flag; remove on merge.

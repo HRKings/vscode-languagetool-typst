@@ -10,14 +10,12 @@ jobs:
       CI: true
     steps:
       - uses: actions/checkout@v6
-      - name: Setup Node.js
-        uses: actions/setup-node@v6.3.0
-        with:
-          node-version: lts/*
-      - run: npm ci
-      - run: npm run vscode:prepublish
-      - run: npm run test-compile
-      - run: npm test
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run vscode:prepublish
+      - run: bun run test-compile
+      - run: bun run test
         name: Test
-      - run: npm run lint
+      - run: bun run lint
         name: ESLint
