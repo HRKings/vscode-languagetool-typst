@@ -204,6 +204,53 @@ suite("Linter Typst Test Suite", () => {
     );
   });
 
+  test("Linter should offer line and file ignores for Typst spelling rules", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      content: "wordthatdoesntexit\n",
+      language: "typst",
+    });
+    const diagnostic = new Diagnostic(
+      new Range(new Position(0, 0), new Position(0, "wordthatdoesntexit".length)),
+      "Possible spelling mistake found.",
+      DiagnosticSeverity.Warning,
+    ) as Diagnostic & { match: ILanguageToolMatch };
+    diagnostic.source = "LanguageTool Typst";
+    diagnostic.match = buildLanguageToolMatch(
+      "MORFOLOGIK_RULE_EN_US",
+      "TYPOS",
+    );
+    diagnostic.match.rule.description = "Possible spelling mistake found.";
+
+    const actions = linter.provideCodeActions(
+      document,
+      diagnostic.range,
+      { diagnostics: [diagnostic] } as never,
+      {} as never,
+    );
+    const lineIgnoreAction = actions.find(
+      (action) =>
+        action.title === "Ignore this spelling rule on this line",
+    );
+    const fileIgnoreAction = actions.find(
+      (action) =>
+        action.title === "Ignore this spelling rule in this file",
+    );
+
+    assert.ok(lineIgnoreAction, "Expected a line ignore quick fix.");
+    assert.deepEqual(
+      lineIgnoreAction?.edit?.get(document.uri)?.map((edit) => edit.newText),
+      [" // @LT-IGNORE:MORFOLOGIK_RULE_EN_US(wordthatdoesntexit)@"],
+      "Expected the spelling line quick fix to insert a Typst inline ignore comment.",
+    );
+
+    assert.ok(fileIgnoreAction, "Expected a file ignore quick fix.");
+    assert.deepEqual(
+      fileIgnoreAction?.edit?.get(document.uri)?.map((edit) => edit.newText),
+      ["// @LT-IGNORE-FILE:MORFOLOGIK_RULE_EN_US(wordthatdoesntexit)@\n"],
+      "Expected the spelling file quick fix to insert a Typst file ignore comment.",
+    );
+  });
+
   test("Linter should recognize file-wide Typst ignore directives", async () => {
     const document = await vscode.workspace.openTextDocument({
       content:

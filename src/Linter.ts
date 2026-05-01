@@ -588,6 +588,41 @@ export class Linter implements CodeActionProvider {
     const actions: CodeAction[] = [];
     const match: ILanguageToolMatch | undefined = diagnostic.match;
     const word: string = document.getText(diagnostic.range);
+    const ruleId: string | undefined = match?.rule?.id;
+    if (ruleId) {
+      const lineIgnoreTitle: string = "Ignore this spelling rule on this line";
+      const lineIgnoreAction: CodeAction = new CodeAction(
+        lineIgnoreTitle,
+        CodeActionKind.QuickFix,
+      );
+      const lineIgnoreEdit: WorkspaceEdit = new WorkspaceEdit();
+      const line = document.lineAt(diagnostic.range.end.line);
+      lineIgnoreEdit.insert(
+        document.uri,
+        line.range.end,
+        " // @LT-IGNORE:" + ruleId + "(" + word + ")@",
+      );
+      lineIgnoreAction.edit = lineIgnoreEdit;
+      lineIgnoreAction.diagnostics = [];
+      lineIgnoreAction.diagnostics.push(diagnostic);
+      actions.push(lineIgnoreAction);
+
+      const fileIgnoreTitle: string = "Ignore this spelling rule in this file";
+      const fileIgnoreAction: CodeAction = new CodeAction(
+        fileIgnoreTitle,
+        CodeActionKind.QuickFix,
+      );
+      const fileIgnoreEdit: WorkspaceEdit = new WorkspaceEdit();
+      fileIgnoreEdit.insert(
+        document.uri,
+        new Position(0, 0),
+        "// @LT-IGNORE-FILE:" + ruleId + "(" + word + ")@\n",
+      );
+      fileIgnoreAction.edit = fileIgnoreEdit;
+      fileIgnoreAction.diagnostics = [];
+      fileIgnoreAction.diagnostics.push(diagnostic);
+      actions.push(fileIgnoreAction);
+    }
     if (this.configManager.isIgnoredWord(word)) {
       if (this.configManager.showIgnoredWordHints()) {
         if (this.configManager.isGloballyIgnoredWord(word)) {
