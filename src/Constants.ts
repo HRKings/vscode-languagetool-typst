@@ -67,11 +67,10 @@ export const SERVICE_PARAMETERS: string[] = [
   "disabledRules",
   "level",
 ];
-// Phase 2 grammar split `...` into a dedicated `ellipsis` node and the
-// linter projects it as `…` for LanguageTool, so the ELLIPSIS rule is
-// safe to leave enabled. Kept as an empty list (rather than removing the
-// constant) so future per-language disables can hook in here.
-export const TYPST_DISABLED_RULES: string[] = [];
+// Typst source quote delimiters should remain visible to LanguageTool for
+// sentence flow, but should not trigger typography suggestions about source
+// syntax. Ellipsis is projected as `…`, so ELLIPSIS can stay enabled.
+export const TYPST_DISABLED_RULES: string[] = ["EN_QUOTES"];
 export const SERVICE_RULE_BASE_URI =
   "https://community.languagetool.org/rule/show/";
 export const SERVICE_RULE_URL_LANG_DEFAULT = "en";

@@ -135,6 +135,10 @@ suite("Linter Typst Test Suite", () => {
       "Expected interpreted Typst text to preserve in-word apostrophe.",
     );
     assert.ok(
+      interpretedText.includes('"B-but I\'m the mage!". He replied.'),
+      "Expected interpreted Typst text to preserve quote punctuation.",
+    );
+    assert.ok(
       !interpretedText.includes("B-but I m "),
       "Expected interpreted Typst text not to replace in-word apostrophe with a space.",
     );

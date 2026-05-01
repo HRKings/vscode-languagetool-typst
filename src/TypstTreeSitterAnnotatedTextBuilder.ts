@@ -18,12 +18,12 @@ import { IAnnotatedtext, IAnnotation } from "annotatedtext";
 import * as fs from "fs";
 import { Language, Node, Parser } from "web-tree-sitter";
 
-const PROSE_LEAF_TYPES = new Set(["text"]);
+const PROSE_LEAF_TYPES = new Set(["text", "lquote", "rquote"]);
 const PARBREAK_TYPES = new Set(["parbreak"]);
 // Structural marker nodes emitted by the prose-focus grammar fork. These
 // represent list/bullet markers (`-`, `+`, `1.`, `•`, `—`, …) and are
 // excluded from prose so LanguageTool doesn't flag them.
-const MARKER_TYPES = new Set(["item_marker", "prose_marker"]);
+const MARKER_TYPES = new Set(["item_marker"]);
 const RECURSE_TYPES = new Set([
   "source_file",
   "section",

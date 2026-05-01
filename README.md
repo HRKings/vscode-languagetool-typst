@@ -27,8 +27,8 @@ extension.
   a custom Typst grammar tuned for prose extraction.
 - Uses annotated text requests so LanguageTool diagnostics map back to the
   original `.typ` file.
-- Disables LanguageTool's quote and ellipsis typography rules for Typst because
-  those often conflict with Typst source syntax.
+- Disables LanguageTool's quote typography rule for Typst because straight
+  source delimiters often conflict with Typst source syntax.
 
 ## Setup
 
