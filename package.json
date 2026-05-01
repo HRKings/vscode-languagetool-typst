@@ -47,7 +47,7 @@
     "@myriaddreamin/typst-ts-parser": "^0.7.0-rc2",
     "annotatedtext": "^0.7.0",
     "execa": "^9.6.1",
-    "glob": "^13.0.0",
+    "glob": "^13.0.6",
     "node-fetch": "^2.7.0",
     "portfinder": "^1.0.38",
     "web-tree-sitter": "^0.25.10"
