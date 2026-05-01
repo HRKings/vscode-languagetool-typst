@@ -739,6 +739,24 @@ export class Linter implements CodeActionProvider {
         usrDisableRuleAction.diagnostics.push(diagnostic);
         actions.push(usrDisableRuleAction);
 
+        const lineIgnoreTitle: string =
+          "Ignore '" + rule.description + "' (" + rule.id + ") on this line";
+        const lineIgnoreAction: CodeAction = new CodeAction(
+          lineIgnoreTitle,
+          CodeActionKind.QuickFix,
+        );
+        const lineIgnoreEdit: WorkspaceEdit = new WorkspaceEdit();
+        const line = document.lineAt(diagnostic.range.end.line);
+        lineIgnoreEdit.insert(
+          document.uri,
+          line.range.end,
+          " // @LT-IGNORE:" + rule.id + "@",
+        );
+        lineIgnoreAction.edit = lineIgnoreEdit;
+        lineIgnoreAction.diagnostics = [];
+        lineIgnoreAction.diagnostics.push(diagnostic);
+        actions.push(lineIgnoreAction);
+
         if (workspace !== undefined) {
           const wsDisableRuleTitle: string =
             "Disable '" + rule.description + "' (" + rule.id + ") in Workspace";

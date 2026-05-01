@@ -2,7 +2,8 @@ import * as assert from "assert";
 import * as fs from "fs";
 import * as path from "path";
 import { IAnnotatedtext } from "annotatedtext";
-import { DiagnosticSeverity } from "vscode";
+import * as vscode from "vscode";
+import { Diagnostic, DiagnosticSeverity, Position, Range, Uri } from "vscode";
 import { ConfigurationManager } from "../../src/ConfigurationManager";
 import { ILanguageToolMatch } from "../../src/Interfaces";
 import { Linter } from "../../src/Linter";
@@ -134,6 +135,39 @@ suite("Linter Typst Test Suite", () => {
     assert.ok(
       !checkedText.includes("- And list right after"),
       "Expected Typst list marker to stay out of checked prose.",
+    );
+  });
+
+  test("Linter should offer a line ignore quick fix for Typst rules", async () => {
+    const uri = Uri.file(
+      path.resolve(__dirname, testWorkspace + "/typst/advanced.typ"),
+    );
+    const document = await vscode.workspace.openTextDocument(uri);
+    const diagnostic = new Diagnostic(
+      new Range(new Position(36, 0), new Position(36, 1)),
+      "dash rule",
+      DiagnosticSeverity.Warning,
+    ) as Diagnostic & { match: ILanguageToolMatch };
+    diagnostic.source = "LanguageTool Typst";
+    diagnostic.match = buildLanguageToolMatch("DASH_RULE", "PUNCTUATION");
+    diagnostic.match.rule.description = "Dash rule";
+
+    const actions = linter.provideCodeActions(
+      document,
+      diagnostic.range,
+      { diagnostics: [diagnostic] } as never,
+      {} as never,
+    );
+    const lineIgnoreAction = actions.find(
+      (action) =>
+        action.title === "Ignore 'Dash rule' (DASH_RULE) on this line",
+    );
+
+    assert.ok(lineIgnoreAction, "Expected a line ignore quick fix.");
+    assert.deepEqual(
+      lineIgnoreAction?.edit?.get(document.uri)?.map((edit) => edit.newText),
+      [" // @LT-IGNORE:DASH_RULE@"],
+      "Expected the quick fix to insert a Typst inline ignore comment.",
     );
   });
 
