@@ -139,6 +139,36 @@
           "default": false,
           "description": "Spelling mistakes will be set as Error, while punctuation, grammar and typography mistakes as Warning. Anything else as the configured Diagnostic Severity level (recommended to be set as Information when using this option)."
         },
+        "languageToolTypst.ruleSeverityOverrides": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "hint",
+              "information",
+              "warning",
+              "error"
+            ]
+          },
+          "markdownDescription": "Map LanguageTool rule IDs to diagnostic severities. Rule overrides take precedence over category overrides and automatic severity. Example: `{ \"FABRIC\": \"hint\", \"MORFOLOGIK_RULE_EN_US\": \"error\" }`."
+        },
+        "languageToolTypst.categorySeverityOverrides": {
+          "type": "object",
+          "default": {
+            "FALSE_FRIENDS": "hint"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "hint",
+              "information",
+              "warning",
+              "error"
+            ]
+          },
+          "markdownDescription": "Map LanguageTool category IDs to diagnostic severities. These overrides take precedence over automatic severity. Example: `{ \"FALSE_FRIENDS\": \"hint\", \"TYPOGRAPHY\": \"information\" }`."
+        },
         "languageToolTypst.hideDiagnosticsOnChange": {
           "type": "boolean",
           "default": false,

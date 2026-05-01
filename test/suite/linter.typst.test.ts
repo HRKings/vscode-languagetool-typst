@@ -2,7 +2,9 @@ import * as assert from "assert";
 import * as fs from "fs";
 import * as path from "path";
 import { IAnnotatedtext } from "annotatedtext";
+import { DiagnosticSeverity } from "vscode";
 import { ConfigurationManager } from "../../src/ConfigurationManager";
+import { ILanguageToolMatch } from "../../src/Interfaces";
 import { Linter } from "../../src/Linter";
 import { TypstTreeSitterAnnotatedTextBuilder } from "../../src/TypstTreeSitterAnnotatedTextBuilder";
 
@@ -143,4 +145,69 @@ suite("Linter Typst Test Suite", () => {
       "Expected interpreted Typst text not to replace in-word apostrophe with a space.",
     );
   });
+
+  test("Linter should default false friends to hints", () => {
+    assert.equal(
+      configManager
+        .getCategorySeverityOverrides()
+        .get("FALSE_FRIENDS"),
+      DiagnosticSeverity.Hint,
+    );
+  });
+
+  test("Linter should apply rule severity overrides before category overrides", () => {
+    const config = new ConfigurationManager();
+    config.getRuleSeverityOverrides = () =>
+      new Map([["FABRIC", DiagnosticSeverity.Error]]);
+    config.getCategorySeverityOverrides = () =>
+      new Map([["FALSE_FRIENDS", DiagnosticSeverity.Hint]]);
+    const overrideLinter = new Linter(config);
+
+    assert.equal(
+      overrideLinter.resolveDiagnosticSeverity(
+        buildLanguageToolMatch("FABRIC", "FALSE_FRIENDS"),
+      ),
+      DiagnosticSeverity.Error,
+    );
+  });
+
+  test("Linter should apply category severity overrides before auto severity", () => {
+    const config = new ConfigurationManager();
+    config.getDiagnosticSeverityAuto = () => true;
+    config.getRuleSeverityOverrides = () => new Map();
+    config.getCategorySeverityOverrides = () =>
+      new Map([["TYPOGRAPHY", DiagnosticSeverity.Information]]);
+    const overrideLinter = new Linter(config);
+
+    assert.equal(
+      overrideLinter.resolveDiagnosticSeverity(
+        buildLanguageToolMatch("EN_QUOTES", "TYPOGRAPHY"),
+      ),
+      DiagnosticSeverity.Information,
+    );
+  });
 });
+
+function buildLanguageToolMatch(
+  ruleId: string,
+  categoryId: string,
+): ILanguageToolMatch {
+  return {
+    context: { length: 0, offset: 0, text: "" },
+    contextForSureMatch: 0,
+    ignoreForIncompleteSentence: false,
+    length: 0,
+    message: "",
+    offset: 0,
+    replacements: [],
+    rule: {
+      category: { id: categoryId, name: categoryId },
+      description: "",
+      id: ruleId,
+      issueType: "",
+    },
+    sentence: "",
+    shortMessage: "",
+    type: { typeName: "" },
+  };
+}

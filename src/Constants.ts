@@ -47,6 +47,9 @@ export const CONFIGURATION_DISABLED_CATEGORIES =
 export const CONFIGURATION_DEBUG = "debug";
 export const CONFIGURATION_DISABLED_IDS = "disabledLanguageIds";
 export const CONFIGURATION_LANGUAGE = "language";
+export const CONFIGURATION_RULE_SEVERITY_OVERRIDES = "ruleSeverityOverrides";
+export const CONFIGURATION_CATEGORY_SEVERITY_OVERRIDES =
+  "categorySeverityOverrides";
 
 // LanguageTool Services
 export const SERVICE_PUBLIC_URL = "https://languagetool.org/api";

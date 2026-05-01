@@ -107,6 +107,23 @@ Settings for this extension live under the `languageToolTypst.*` namespace so it
 can be installed alongside the original LanguageTool linter without sharing
 configuration state.
 
+You can override diagnostic severity by LanguageTool rule ID or category ID:
+
+```json
+{
+  "languageToolTypst.ruleSeverityOverrides": {
+    "FABRIC": "hint"
+  },
+  "languageToolTypst.categorySeverityOverrides": {
+    "FALSE_FRIENDS": "hint",
+    "TYPOGRAPHY": "information"
+  }
+}
+```
+
+Rule overrides take precedence over category overrides. Both take precedence over
+automatic severity.
+
 Most configuration items should be safe, but there are three you should pay
 particular attention to:
 

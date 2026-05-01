@@ -485,16 +485,12 @@ export class Linter implements CodeActionProvider {
       const start: Position = document.positionAt(match.offset);
       const end: Position = document.positionAt(match.offset + match.length);
       const ignored: IIgnoreItem[] = this.getIgnoreList(document, start);
-      const diagnosticSeverity: DiagnosticSeverity =
-        this.configManager.getDiagnosticSeverity();
-      const diagnosticSeverityAuto: boolean =
-        this.configManager.getDiagnosticSeverityAuto();
       const diagnosticRange: Range = new Range(start, end);
       const diagnosticMessage: string = match.message;
       const diagnostic: LTDiagnostic = new LTDiagnostic(
         diagnosticRange,
         diagnosticMessage,
-        diagnosticSeverity,
+        this.resolveDiagnosticSeverity(match),
       );
       diagnostic.source = Constants.EXTENSION_DIAGNOSTIC_SOURCE;
       diagnostic.match = match;
@@ -511,13 +507,6 @@ export class Linter implements CodeActionProvider {
         };
       }
       diagnostics.push(diagnostic);
-      if (diagnosticSeverityAuto) {
-        if (Linter.isSpellingRule(match.rule.id)) {
-          diagnostic.severity = DiagnosticSeverity.Error;
-        } else if (Linter.isWarningCategory(match.rule.category.id)) {
-          diagnostic.severity = DiagnosticSeverity.Warning;
-        }
-      }
       if (
         Linter.isSpellingRule(match.rule.id) &&
         this.configManager.isIgnoredWord(document.getText(diagnostic.range)) &&
@@ -540,6 +529,35 @@ export class Linter implements CodeActionProvider {
         diagnostics.length
       }`,
     );
+  }
+
+  public resolveDiagnosticSeverity(
+    match: ILanguageToolMatch,
+  ): DiagnosticSeverity {
+    const ruleSeverity = this.configManager
+      .getRuleSeverityOverrides()
+      .get(match.rule.id.toUpperCase());
+    if (ruleSeverity !== undefined) {
+      return ruleSeverity;
+    }
+
+    const categorySeverity = this.configManager
+      .getCategorySeverityOverrides()
+      .get(match.rule.category.id.toUpperCase());
+    if (categorySeverity !== undefined) {
+      return categorySeverity;
+    }
+
+    if (this.configManager.getDiagnosticSeverityAuto()) {
+      if (Linter.isSpellingRule(match.rule.id)) {
+        return DiagnosticSeverity.Error;
+      }
+      if (Linter.isWarningCategory(match.rule.category.id)) {
+        return DiagnosticSeverity.Warning;
+      }
+    }
+
+    return this.configManager.getDiagnosticSeverity();
   }
 
   /**

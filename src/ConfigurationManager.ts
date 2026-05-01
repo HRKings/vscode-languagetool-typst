@@ -234,19 +234,16 @@ export class ConfigurationManager implements Disposable {
   }
 
   public getDiagnosticSeverity(): DiagnosticSeverity {
-    const severity = this.config.get("diagnosticSeverity");
-    if (severity === "information") {
-      return DiagnosticSeverity.Information;
-    } else if (severity === "error") {
-      return DiagnosticSeverity.Error;
-    } else if (severity === "warning") {
-      return DiagnosticSeverity.Warning;
-    } else {
-      window.showWarningMessage(
-        '"LanguageTool Typst > Diagnostic Severity" is unknown. Defaulting to "Warning".',
-      );
-      return DiagnosticSeverity.Warning;
+    const severity = this.parseDiagnosticSeverity(
+      this.config.get("diagnosticSeverity"),
+    );
+    if (severity !== undefined && severity !== DiagnosticSeverity.Hint) {
+      return severity;
     }
+    window.showWarningMessage(
+      '"LanguageTool Typst > Diagnostic Severity" is unknown. Defaulting to "Warning".',
+    );
+    return DiagnosticSeverity.Warning;
   }
 
   public getDiagnosticSeverityAuto(): boolean {
@@ -255,6 +252,18 @@ export class ConfigurationManager implements Disposable {
       return true;
     }
     return false;
+  }
+
+  public getRuleSeverityOverrides(): Map<string, DiagnosticSeverity> {
+    return this.getSeverityOverrides(
+      Constants.CONFIGURATION_RULE_SEVERITY_OVERRIDES,
+    );
+  }
+
+  public getCategorySeverityOverrides(): Map<string, DiagnosticSeverity> {
+    return this.getSeverityOverrides(
+      Constants.CONFIGURATION_CATEGORY_SEVERITY_OVERRIDES,
+    );
   }
 
   public isDebugEnabled(): boolean {
@@ -387,6 +396,37 @@ export class ConfigurationManager implements Disposable {
         return undefined;
       }
     }
+  }
+
+  private getSeverityOverrides(section: string): Map<string, DiagnosticSeverity> {
+    const rawOverrides = this.config.get<Record<string, string>>(section, {});
+    const overrides = new Map<string, DiagnosticSeverity>();
+    Object.entries(rawOverrides).forEach(([key, value]) => {
+      const severity = this.parseDiagnosticSeverity(value);
+      if (severity === undefined) {
+        window.showWarningMessage(
+          `"LanguageTool Typst > ${section}" contains an unknown severity "${value}" for "${key}".`,
+        );
+        return;
+      }
+      overrides.set(key.toUpperCase(), severity);
+    });
+    return overrides;
+  }
+
+  private parseDiagnosticSeverity(
+    severity: string | undefined,
+  ): DiagnosticSeverity | undefined {
+    if (severity === "hint") {
+      return DiagnosticSeverity.Hint;
+    } else if (severity === "information") {
+      return DiagnosticSeverity.Information;
+    } else if (severity === "warning") {
+      return DiagnosticSeverity.Warning;
+    } else if (severity === "error") {
+      return DiagnosticSeverity.Error;
+    }
+    return undefined;
   }
 
   private buildServiceParameters(): Map<string, string> {
