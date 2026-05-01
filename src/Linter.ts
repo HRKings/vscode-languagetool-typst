@@ -506,20 +506,23 @@ export class Linter implements CodeActionProvider {
             : match.rule.id,
         };
       }
+
+      if (
+        this.checkIfIgnored(
+          ignored,
+          match.rule.id,
+          match.rule.category.id,
+          document.getText(diagnosticRange),
+        )
+      ) {
+        return; // Skip this diagnostic entirely
+      }
+
       diagnostics.push(diagnostic);
       if (
         Linter.isSpellingRule(match.rule.id) &&
         this.configManager.isIgnoredWord(document.getText(diagnostic.range)) &&
         this.configManager.showIgnoredWordHints()
-      ) {
-        diagnostic.severity = DiagnosticSeverity.Hint;
-      } else if (
-        this.checkIfIgnored(
-          ignored,
-          match.rule.id,
-          match.rule.category.id,
-          document.getText(diagnostic.range),
-        )
       ) {
         diagnostic.severity = DiagnosticSeverity.Hint;
       }
