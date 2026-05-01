@@ -34,9 +34,23 @@ const RECURSE_TYPES = new Set([
   "item",
 ]);
 
+// Builtin calls whose bracketed body is structurally present in the document
+// but should not flow into the surrounding sentence stream. Footnotes
+// interrupt the host sentence visually and confuse LanguageTool's
+// capitalization / sentence-flow rules when treated as inline prose.
+const EXCLUDED_CALL_NAMES = new Set(["footnote"]);
+
+// Excluded markup nodes whose annotated-text projection should be a
+// specific Unicode glyph rather than empty/whitespace. Lets LanguageTool
+// see `…` for typst's `...` shorthand, etc.
+const INTERPRET_AS_MAP = new Map<string, string>([
+  ["ellipsis", "…"],
+]);
+
 export class TypstTreeSitterAnnotatedTextBuilder {
   private static initPromise: Promise<void> | undefined;
   private static parser: Parser | undefined;
+  private interpretOverrides = new Map<number, string>();
 
   public static async init(wasmPath: string): Promise<void> {
     if (this.initPromise) {
@@ -64,6 +78,7 @@ export class TypstTreeSitterAnnotatedTextBuilder {
     }
 
     const included: boolean[] = new Array(text.length).fill(false);
+    this.interpretOverrides = new Map<number, string>();
     const tree = parser.parse(text);
     if (tree && tree.rootNode) {
       this.classify(tree.rootNode, included, text);
@@ -71,7 +86,11 @@ export class TypstTreeSitterAnnotatedTextBuilder {
     return this.buildAnnotatedText(text, included);
   }
 
-  private classify(node: Node, included: boolean[], text: string): void {
+  private classify(
+    node: Node,
+    included: boolean[],
+    text: string,
+  ): void {
     const type = node.type;
 
     if (PROSE_LEAF_TYPES.has(type)) {
@@ -83,6 +102,16 @@ export class TypstTreeSitterAnnotatedTextBuilder {
       return;
     }
 
+    const override = INTERPRET_AS_MAP.get(type);
+    if (override !== undefined) {
+      this.interpretOverrides.set(node.startIndex, override);
+      return;
+    }
+
+    if (type === "code" && this.isExcludedCall(node, text)) {
+      return;
+    }
+
     if (RECURSE_TYPES.has(type) || node.namedChildCount > 0) {
       for (let i = 0; i < node.namedChildCount; i++) {
         const child = node.namedChild(i);
@@ -91,6 +120,13 @@ export class TypstTreeSitterAnnotatedTextBuilder {
         }
       }
     }
+  }
+
+  private isExcludedCall(node: Node, text: string): boolean {
+    const head = node.namedChild(0);
+    if (!head || head.type !== "ident") return false;
+    const name = text.slice(head.startIndex, head.endIndex);
+    return EXCLUDED_CALL_NAMES.has(name);
   }
 
   private fillRange(
@@ -141,8 +177,9 @@ export class TypstTreeSitterAnnotatedTextBuilder {
         text: text.slice(start, end),
       };
     }
+    const override = this.interpretOverrides.get(start);
     return {
-      interpretAs: this.interpretMarkup(text, start, end),
+      interpretAs: override ?? this.interpretMarkup(text, start, end),
       markup: text.slice(start, end),
       offset: { end, start },
     };
