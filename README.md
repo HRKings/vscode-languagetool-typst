@@ -1,9 +1,16 @@
-# LanguageTool Linter for Visual Studio Code
+# vscode-languagetool-typst
 
-[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/davidlday/vscode-languagetool-linter/nodejs-ci.yml)](https://github.com/davidlday/vscode-languagetool-linter/actions/workflows/nodejs-ci.yml)
+LanguageTool grammar, style, and spell checking for Typst documents in Visual
+Studio Code.
 
-Grammar, Style and Spell Checking in VS Code via
-[LanguageTool](https://languagetool.org), focused on Typst documents.
+This extension is derived from
+[davidlday/vscode-languagetool-linter](https://github.com/davidlday/vscode-languagetool-linter),
+which provided the original VS Code LanguageTool integration, service
+management, diagnostics, replacement suggestions, and configuration surface. This
+fork narrows the project around Typst prose linting and uses a custom
+[tree-sitter-typst-prose](https://github.com/HRKings/tree-sitter-typst-prose)
+grammar to distinguish prose from Typst syntax before sending text to
+[LanguageTool](https://languagetool.org).
 
 In memory of [Adam Voss](https://github.com/adamvoss), original creator of the
 [LanguageTool for Visual Studio Code](https://github.com/languagetool-language-server/vscode-languagetool)
@@ -15,6 +22,9 @@ extension.
 - Replacement suggestions.
 - Checks Typst prose while skipping Typst markup, comments, raw code, math, and
   scripting fragments.
+- Parses `.typ` files with
+  [tree-sitter-typst-prose](https://github.com/HRKings/tree-sitter-typst-prose),
+  a custom Typst grammar tuned for prose extraction.
 - Uses annotated text requests so LanguageTool diagnostics map back to the
   original `.typ` file.
 - Disables LanguageTool's quote and ellipsis typography rules for Typst because
@@ -50,9 +60,8 @@ If this doesn't work for you, here are your options.
 
 ### Option 1: Use an External Service
 
-This could either be a
-[locally running instance](https://github.com/davidlday/vscode-languagetool-linter/wiki#run-a-local-languagetool-service)
-of LanguageTool, or the service running somewhere else.
+This could either be a locally running instance of LanguageTool, or the service
+running somewhere else.
 
 1. Set the URL in “LanguageTool Linter > External: URL” (i.e.
    `http://localhost:8081`).
@@ -64,10 +73,9 @@ of LanguageTool, or the service running somewhere else.
 
 Works well if you're only using LanguageTool in Visual Studio Code.
 
-1. [Install LanguageTool](https://github.com/davidlday/vscode-languagetool-linter/wiki#installing-languagetool)
-   locally.
+1. Install LanguageTool locally.
 1. Set “LanguageTool Linter > Managed: Jar File” to the location of the
-   `languagetool-server.jar` file. The install doc has hints.
+   `languagetool-server.jar` file.
 1. Set “LanguageTool Linter: Service Type” to `managed`.
 
 ![Managed Service](images/managed.gif)
@@ -81,6 +89,17 @@ doing this.
 1. Set “LanguageTool Linter: Service Type” to `public`.
 
 ![Public API](images/public.gif)
+
+## Development
+
+This project uses [Bun](https://bun.sh/) for dependency installation, scripts,
+and packaging.
+
+```sh
+bun install
+bun run compile
+bunx vsce package
+```
 
 ## Configuration Notes
 
@@ -125,7 +144,9 @@ The and the `text-match` is optional.
 
 ## Credits
 
-The following projects provided excellent guidance on creating this project.
+This project is based on
+[davidlday/vscode-languagetool-linter](https://github.com/davidlday/vscode-languagetool-linter).
+The following projects also provided excellent guidance or core functionality.
 
 <!-- markdownlint-disable no-inline-html -->
 
@@ -136,5 +157,6 @@ The following projects provided excellent guidance on creating this project.
 - [VS Code Write Good Extension](https://github.com/TravisTheTechie/vscode-write-good/)
 - [Fall: Not Yet Another Parser Generator](https://github.com/matklad/fall)
 - [typst-ts-parser](https://www.npmjs.com/package/@myriaddreamin/typst-ts-parser)
+- [tree-sitter-typst-prose](https://github.com/HRKings/tree-sitter-typst-prose)
 
 <!-- markdownlint-enable no-inline-html -->

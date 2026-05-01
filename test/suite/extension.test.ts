@@ -10,13 +10,13 @@ suite("Extension Test Suite", () => {
   });
 
   test("Extension should be present", () => {
-    assert.ok(vscode.extensions.getExtension("local.languagetool-linter-typst"));
+    assert.ok(vscode.extensions.getExtension("hrkings.vscode-languagetool-typst"));
   });
 
   test("Extension should activate", async function () {
     this.timeout(60000);
     const ext: vscode.Extension<unknown> | undefined =
-      vscode.extensions.getExtension("local.languagetool-linter-typst");
+      vscode.extensions.getExtension("hrkings.vscode-languagetool-typst");
     if (ext) {
       await ext.activate();
       assert.ok(true);

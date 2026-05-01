@@ -1,3 +1,11 @@
+## v0.1.0
+
+### Changed
+
+- Rebrand as `vscode-languagetool-typst`, a Typst-focused LanguageTool
+  extension derived from `davidlday/vscode-languagetool-linter`.
+- Reset the extension version for the new extension identity.
+
 ## v0.25.7 (2026-04-17)
 
 ### Fix

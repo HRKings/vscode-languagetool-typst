@@ -1,8 +1,8 @@
 {
-  "name": "languagetool-linter-typst",
-  "displayName": "LanguageTool Linter Typst",
-  "version": "0.25.7-typst",
-  "description": "LanguageTool integration for VS Code.",
+  "name": "vscode-languagetool-typst",
+  "displayName": "LanguageTool Typst",
+  "version": "0.1.0",
+  "description": "LanguageTool grammar, style, and spell checking for Typst documents.",
   "categories": [
     "Linters"
   ],
@@ -16,17 +16,17 @@
     "spelling",
     "typst"
   ],
-  "homepage": "https://github.com/davidlday/vscode-languagetool-linter#readme",
+  "homepage": "https://github.com/HRKings/vscode-languagetool-typst#readme",
   "bugs": {
-    "url": "https://github.com/davidlday/vscode-languagetool-linter/issues"
+    "url": "https://github.com/HRKings/vscode-languagetool-typst/issues"
   },
   "license": "Apache-2.0",
   "author": "David L. Day <david@davidlday.com> (https://www.davidlday.com)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/davidlday/vscode-languagetool-linter"
+    "url": "https://github.com/HRKings/vscode-languagetool-typst"
   },
-  "publisher": "local",
+  "publisher": "HRKings",
   "main": "./dist/extension.js",
   "scripts": {
     "clean": "rm -rf out/* dist/*",
@@ -35,12 +35,13 @@
     "webpack-dev": "webpack --mode development --watch --info-verbosity verbose",
     "compile": "webpack --mode none",
     "watch": "webpack --mode development --watch --info-verbosity verbose",
-    "test-compile": "npm run main-out && tsc -p ./",
+    "test-compile": "bun run main-out && tsc -p ./",
     "main-out": "json -I -f package.json -e 'this.main=\"./out/src/extension.js\"'",
     "main-dist": "json -I -f package.json -e 'this.main=\"./dist/extension.js\"'",
-    "pretest": "npm run test-compile",
-    "test": "node ./out/test/runTest.js && npm run main-dist",
-    "lint": "eslint ./src/"
+    "pretest": "bun run test-compile",
+    "test": "node ./out/test/runTest.js && bun run main-dist",
+    "lint": "eslint ./src/",
+    "package": "bunx vsce package"
   },
   "dependencies": {
     "@myriaddreamin/typst-ts-parser": "^0.7.0-rc2",
