@@ -14,23 +14,23 @@
  *   limitations under the License.
  */
 
-import { execa, ExecaError } from "execa";
+import * as path from "node:path";
 import type { ResultPromise } from "execa";
+import { type ExecaError, execa } from "execa";
 import { glob } from "glob";
-import * as path from "path";
 import * as portfinder from "portfinder";
 import {
-  commands,
-  ConfigurationChangeEvent,
+  type ConfigurationChangeEvent,
   ConfigurationTarget,
+  commands,
   DiagnosticSeverity,
-  Disposable,
-  DocumentSelector,
-  TextDocument,
+  type Disposable,
+  type DocumentSelector,
+  type TextDocument,
   Uri,
+  type WorkspaceConfiguration,
   window,
   workspace,
-  WorkspaceConfiguration,
 } from "vscode";
 import * as Constants from "./Constants";
 
@@ -168,7 +168,7 @@ export class ConfigurationManager implements Disposable {
   public getRuleUrl(ruleId: string): Uri {
     const lang = this.getLanguage();
     return Uri.parse(
-      Constants.SERVICE_RULE_BASE_URI + ruleId + "?lang=" + lang,
+      `${Constants.SERVICE_RULE_BASE_URI + ruleId}?lang=${lang}`,
     );
   }
 
@@ -398,7 +398,9 @@ export class ConfigurationManager implements Disposable {
     }
   }
 
-  private getSeverityOverrides(section: string): Map<string, DiagnosticSeverity> {
+  private getSeverityOverrides(
+    section: string,
+  ): Map<string, DiagnosticSeverity> {
     const rawOverrides = this.config.get<Record<string, string>>(section, {});
     const overrides = new Map<string, DiagnosticSeverity>();
     Object.entries(rawOverrides).forEach(([key, value]) => {
@@ -433,13 +435,13 @@ export class ConfigurationManager implements Disposable {
     const config: WorkspaceConfiguration = this.config;
     const parameters: Map<string, string> = new Map();
     Constants.SERVICE_PARAMETERS.forEach((ltKey) => {
-      const configKey: string = "languageTool." + ltKey;
+      const configKey: string = `languageTool.${ltKey}`;
       const value: string | undefined = config.get(configKey);
       if (value) {
         parameters.set(ltKey, value);
-        Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(ltKey + ": " + value);
+        Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(`${ltKey}: ${value}`);
       } else {
-        Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(ltKey + ": --");
+        Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(`${ltKey}: --`);
       }
     });
     // Only add user name and API key to options if set and we are using the
@@ -521,7 +523,7 @@ export class ConfigurationManager implements Disposable {
           (error: Error, port: number) => {
             if (error) {
               Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
-                "Error getting open port: " + error.message,
+                `Error getting open port: ${error.message}`,
               );
               Constants.EXTENSION_OUTPUT_CHANNEL.show(true);
             } else {
@@ -536,30 +538,39 @@ export class ConfigurationManager implements Disposable {
               Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
                 "Starting managed service.",
               );
-              (this.process = execa("java", args)).catch(
-                (err: ExecaError) => {
-                  if (err.isTerminated) {
-                    Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
-                      "Managed service process stopped.",
-                    );
-                  } else if (err.failed) {
-                    Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
-                      "Managed service command failed: " + err.command,
-                    );
-                    Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
-                      "Error Message: " + err.message,
-                    );
-                    Constants.EXTENSION_OUTPUT_CHANNEL.show(true);
-                  }
+              this.process = execa("java", args);
+              this.process.catch((err: ExecaError) => {
+                if (err.isTerminated) {
+                  Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+                    "Managed service process stopped.",
+                  );
+                } else if (err.failed) {
+                  Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+                    `Managed service command failed: ${err.command}`,
+                  );
+                  Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+                    `Error Message: ${err.message}`,
+                  );
+                  Constants.EXTENSION_OUTPUT_CHANNEL.show(true);
+                }
+              });
+              this.process.stderr?.addListener(
+                "data",
+                (data: Buffer | string) => {
+                  Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+                    data.toString(),
+                  );
+                  Constants.EXTENSION_OUTPUT_CHANNEL.show(true);
                 },
               );
-              this.process.stderr?.addListener("data", (data: Buffer | string) => {
-                Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(data.toString());
-                Constants.EXTENSION_OUTPUT_CHANNEL.show(true);
-              });
-              this.process.stdout?.addListener("data", (data: Buffer | string) => {
-                Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(data.toString());
-              });
+              this.process.stdout?.addListener(
+                "data",
+                (data: Buffer | string) => {
+                  Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
+                    data.toString(),
+                  );
+                },
+              );
               this.serviceUrl = this.findServiceUrl(this.getServiceType());
             }
           },

@@ -1,7 +1,7 @@
-import * as assert from "assert";
+import * as assert from "node:assert";
 import * as vscode from "vscode";
-import * as Constants from "../../src/Constants";
 import { ConfigurationManager } from "../../src/ConfigurationManager";
+import * as Constants from "../../src/Constants";
 
 suite("ConfigurationManager Test Suite", () => {
   test("ConfigurationManager should load configuration", () => {

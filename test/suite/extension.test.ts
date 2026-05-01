@@ -1,4 +1,4 @@
-import * as assert from "assert";
+import * as assert from "node:assert";
 // tslint:disable-next-line: no-implicit-dependencies
 import { before } from "mocha";
 import * as vscode from "vscode";
@@ -10,7 +10,9 @@ suite("Extension Test Suite", () => {
   });
 
   test("Extension should be present", () => {
-    assert.ok(vscode.extensions.getExtension("hrkings.vscode-languagetool-typst"));
+    assert.ok(
+      vscode.extensions.getExtension("hrkings.vscode-languagetool-typst"),
+    );
   });
 
   test("Extension should activate", async function () {

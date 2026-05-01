@@ -22,4 +22,4 @@ jobs:
       - run: bun run test
         name: Test
       - run: bun run lint
-        name: ESLint
+        name: Lint

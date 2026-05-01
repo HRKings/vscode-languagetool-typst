@@ -1,11 +1,11 @@
-import * as assert from "assert";
-import * as fs from "fs";
-import * as path from "path";
-import { IAnnotatedtext } from "annotatedtext";
+import * as assert from "node:assert";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import type { IAnnotatedtext } from "annotatedtext";
 import * as vscode from "vscode";
 import { Diagnostic, DiagnosticSeverity, Position, Range, Uri } from "vscode";
 import { ConfigurationManager } from "../../src/ConfigurationManager";
-import { ILanguageToolMatch } from "../../src/Interfaces";
+import type { ILanguageToolMatch } from "../../src/Interfaces";
 import { Linter } from "../../src/Linter";
 import { TypstTreeSitterAnnotatedTextBuilder } from "../../src/TypstTreeSitterAnnotatedTextBuilder";
 
@@ -48,7 +48,7 @@ suite("Linter Typst Test Suite", () => {
 
   test("Linter should return annotated text for Typst", async () => {
     const text: string = fs.readFileSync(
-      path.resolve(__dirname, testWorkspace + "/typst/basic.typ"),
+      path.resolve(__dirname, `${testWorkspace}/typst/basic.typ`),
       "utf8",
     );
     const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(text);
@@ -57,9 +57,7 @@ suite("Linter Typst Test Suite", () => {
 
     assert.ok(checkedText.includes("A Typst Heading"));
     assert.ok(
-      checkedText.includes(
-        "This paragraph should be checked by LanguageTool.",
-      ),
+      checkedText.includes("This paragraph should be checked by LanguageTool."),
     );
     assert.ok(checkedText.includes("Nested title should be checked."));
     assert.ok(checkedText.includes("A list item should be checked."));
@@ -75,7 +73,7 @@ suite("Linter Typst Test Suite", () => {
 
   test("Linter should keep advanced Typst prose checkable", async () => {
     const text: string = fs.readFileSync(
-      path.resolve(__dirname, testWorkspace + "/typst/advanced.typ"),
+      path.resolve(__dirname, `${testWorkspace}/typst/advanced.typ`),
       "utf8",
     );
     const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(text);
@@ -122,7 +120,7 @@ suite("Linter Typst Test Suite", () => {
 
   test("Linter should exclude Typst list markers from checked prose", async () => {
     const text: string = fs.readFileSync(
-      path.resolve(__dirname, testWorkspace + "/typst/advanced.typ"),
+      path.resolve(__dirname, `${testWorkspace}/typst/advanced.typ`),
       "utf8",
     );
     const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(text);
@@ -140,7 +138,7 @@ suite("Linter Typst Test Suite", () => {
 
   test("Linter should offer a line ignore quick fix for Typst rules", async () => {
     const uri = Uri.file(
-      path.resolve(__dirname, testWorkspace + "/typst/advanced.typ"),
+      path.resolve(__dirname, `${testWorkspace}/typst/advanced.typ`),
     );
     const document = await vscode.workspace.openTextDocument(uri);
     const diagnostic = new Diagnostic(
@@ -173,7 +171,7 @@ suite("Linter Typst Test Suite", () => {
 
   test("Linter should offer a file ignore quick fix for Typst rules", async () => {
     const uri = Uri.file(
-      path.resolve(__dirname, testWorkspace + "/typst/advanced.typ"),
+      path.resolve(__dirname, `${testWorkspace}/typst/advanced.typ`),
     );
     const document = await vscode.workspace.openTextDocument(uri);
     const diagnostic = new Diagnostic(
@@ -210,15 +208,15 @@ suite("Linter Typst Test Suite", () => {
       language: "typst",
     });
     const diagnostic = new Diagnostic(
-      new Range(new Position(0, 0), new Position(0, "wordthatdoesntexit".length)),
+      new Range(
+        new Position(0, 0),
+        new Position(0, "wordthatdoesntexit".length),
+      ),
       "Possible spelling mistake found.",
       DiagnosticSeverity.Warning,
     ) as Diagnostic & { match: ILanguageToolMatch };
     diagnostic.source = "LanguageTool Typst";
-    diagnostic.match = buildLanguageToolMatch(
-      "MORFOLOGIK_RULE_EN_US",
-      "TYPOS",
-    );
+    diagnostic.match = buildLanguageToolMatch("MORFOLOGIK_RULE_EN_US", "TYPOS");
     diagnostic.match.rule.description = "Possible spelling mistake found.";
 
     const actions = linter.provideCodeActions(
@@ -228,12 +226,10 @@ suite("Linter Typst Test Suite", () => {
       {} as never,
     );
     const lineIgnoreAction = actions.find(
-      (action) =>
-        action.title === "Ignore this spelling rule on this line",
+      (action) => action.title === "Ignore this spelling rule on this line",
     );
     const fileIgnoreAction = actions.find(
-      (action) =>
-        action.title === "Ignore this spelling rule in this file",
+      (action) => action.title === "Ignore this spelling rule in this file",
     );
 
     assert.ok(lineIgnoreAction, "Expected a line ignore quick fix.");
@@ -252,6 +248,7 @@ suite("Linter Typst Test Suite", () => {
   });
 
   test("Linter should match Typst spelling ignore directives case-insensitively", () => {
+    // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
     const helper = linter as any;
     const ignored = [
       {
@@ -280,6 +277,7 @@ suite("Linter Typst Test Suite", () => {
         "// @LT-IGNORE-FILE:DASH_RULE@\n== Subtitle\n- And list right after\n",
       language: "typst",
     });
+    // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
     const helper = linter as any;
     const ignoreList = helper.buildIgnoreList(document) as Array<{
       line: number;
@@ -295,7 +293,10 @@ suite("Linter Typst Test Suite", () => {
       new vscode.Position(2, 0),
     ) as Array<{ ruleId: string; scope: "line" | "file" }>;
 
-    assert.ok(fileIgnore, "Expected a file-wide ignore directive to be parsed.");
+    assert.ok(
+      fileIgnore,
+      "Expected a file-wide ignore directive to be parsed.",
+    );
     assert.ok(
       ignoredOnLaterLine.some(
         (item) => item.ruleId === "DASH_RULE" && item.scope === "file",
@@ -306,7 +307,7 @@ suite("Linter Typst Test Suite", () => {
 
   test("Linter should preserve Typst apostrophes inside words", async () => {
     const text: string = fs.readFileSync(
-      path.resolve(__dirname, testWorkspace + "/typst/medium.typ"),
+      path.resolve(__dirname, `${testWorkspace}/typst/medium.typ`),
       "utf8",
     );
     const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(text);
@@ -333,9 +334,7 @@ suite("Linter Typst Test Suite", () => {
 
   test("Linter should default false friends to hints", () => {
     assert.equal(
-      configManager
-        .getCategorySeverityOverrides()
-        .get("FALSE_FRIENDS"),
+      configManager.getCategorySeverityOverrides().get("FALSE_FRIENDS"),
       DiagnosticSeverity.Hint,
     );
   });
@@ -377,6 +376,7 @@ suite("Linter Typst Test Suite", () => {
       content: "// @LT-IGNORE:category=FALSE_FRIENDS@\nSome text\n",
       language: "typst",
     });
+    // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
     const helper = linter as any;
     const ignoreList = helper.buildIgnoreList(document) as Array<{
       ruleId?: string;
@@ -395,6 +395,7 @@ suite("Linter Typst Test Suite", () => {
       content: "// @LT-IGNORE-FILE:rule=INTEND category=FALSE_FRIENDS@\n",
       language: "typst",
     });
+    // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
     const helper = linter as any;
     const ignoreList = helper.buildIgnoreList(document) as Array<{
       ruleId?: string;
@@ -413,6 +414,7 @@ suite("Linter Typst Test Suite", () => {
       content: "// @LT-IGNORE:INTEND category=FALSE_FRIENDS@\n",
       language: "typst",
     });
+    // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
     const helper = linter as any;
     const ignoreList = helper.buildIgnoreList(document) as Array<{
       ruleId?: string;
@@ -425,6 +427,7 @@ suite("Linter Typst Test Suite", () => {
   });
 
   test("Linter should ignore all rules in a category when category directive is used", () => {
+    // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
     const helper = linter as any;
     const ignored = [
       { line: 0, scope: "file" as const, category: "FALSE_FRIENDS" },
@@ -448,6 +451,7 @@ suite("Linter Typst Test Suite", () => {
   });
 
   test("Linter should ignore a rule only when both rule and category match", () => {
+    // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
     const helper = linter as any;
     const ignored = [
       {

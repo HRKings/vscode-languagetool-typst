@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-import { OutputChannel, window } from "vscode";
+import { type OutputChannel, window } from "vscode";
 
 // General Extension
 export const EXTENSION_TIMEOUT_MS = 500;
@@ -26,9 +26,7 @@ export const EXTENSION_DIAGNOSTIC_SOURCE = "LanguageTool Typst";
 // Programming Language IDs
 export const LANGUAGE_ID_TYPST = "typst";
 
-export const SUPPORTED_LANGUAGE_IDS: string[] = [
-  LANGUAGE_ID_TYPST,
-];
+export const SUPPORTED_LANGUAGE_IDS: string[] = [LANGUAGE_ID_TYPST];
 
 // File Scheme
 export const SCHEME_FILE = "file";
@@ -84,8 +82,7 @@ export const COMMAND_CHECK_DOCUMENT = "languageToolTypst.checkDocument";
 export const COMMAND_CLEAR_DIAGNOSTICS =
   "languageToolTypst.clearDocumentDiagnostics";
 export const COMMAND_IGNORE_USR_WORD = "languageToolTypst.ignoreWordGlobally";
-export const COMMAND_IGNORE_WS_WORD =
-  "languageToolTypst.ignoreWordInWorkspace";
+export const COMMAND_IGNORE_WS_WORD = "languageToolTypst.ignoreWordInWorkspace";
 export const COMMAND_REMOVE_USR_IGNORED_WORD =
   "languageToolTypst.removeGloballyIgnoredWord";
 export const COMMAND_REMOVE_WS_IGNORED_WORD =

@@ -40,7 +40,9 @@
     "main-dist": "json -I -f package.json -e 'this.main=\"./dist/extension.js\"'",
     "pretest": "bun run test-compile",
     "test": "node ./out/test/runTest.js && bun run main-dist",
-    "lint": "oxlint ./src/",
+    "lint": "biome lint ./src/",
+    "format": "biome format --write ./src/",
+    "check": "biome check ./src/",
     "package": "bunx vsce package --no-dependencies"
   },
   "dependencies": {
@@ -53,6 +55,7 @@
     "web-tree-sitter": "^0.26.8"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.6.0",
     "@types/node-fetch": "^2.6.13",
@@ -61,7 +64,6 @@
     "@vscode/vsce": "^3.9.1",
     "json": "^11.0.0",
     "mocha": "^11.7.5",
-    "oxlint": "^1.62.0",
     "tree-sitter-cli": "^0.26.8",
     "ts-loader": "^9.5.7",
     "ts-node": "^10.9.2",

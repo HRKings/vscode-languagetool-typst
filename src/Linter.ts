@@ -14,30 +14,30 @@
  *   limitations under the License.
  */
 
-import { IAnnotatedtext } from "annotatedtext";
+import type { IAnnotatedtext } from "annotatedtext";
 import * as Fetch from "node-fetch";
 import {
-  CancellationToken,
+  type CancellationToken,
   CodeAction,
-  CodeActionContext,
+  type CodeActionContext,
   CodeActionKind,
-  CodeActionProvider,
+  type CodeActionProvider,
   ConfigurationTarget,
   Diagnostic,
-  DiagnosticCollection,
+  type DiagnosticCollection,
   DiagnosticSeverity,
   languages,
   Position,
   Range,
-  TextDocument,
-  TextEditor,
-  Uri,
-  workspace,
+  type TextDocument,
+  type TextEditor,
+  type Uri,
   WorkspaceEdit,
+  workspace,
 } from "vscode";
-import { ConfigurationManager } from "./ConfigurationManager";
+import type { ConfigurationManager } from "./ConfigurationManager";
 import * as Constants from "./Constants";
-import {
+import type {
   IIgnoreItem,
   ILanguageToolMatch,
   ILanguageToolReplacement,
@@ -272,7 +272,9 @@ export class Linter implements CodeActionProvider {
         .map((rule) => rule.trim())
         .filter((rule) => rule.length > 0),
     );
-    additionalRules.forEach((rule) => rules.add(rule));
+    for (const rule of additionalRules) {
+      rules.add(rule);
+    }
     return Array.from(rules).join(",");
   }
 
@@ -282,7 +284,7 @@ export class Linter implements CodeActionProvider {
     }
 
     Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
-      "[debug] " + new Date().toISOString() + " " + message,
+      `[debug] ${new Date().toISOString()} ${message}`,
     );
   }
 
@@ -344,14 +346,14 @@ export class Linter implements CodeActionProvider {
     const dataLength = postData.data ? postData.data.length : 0;
     const parameters = Object.keys(postData)
       .filter((key) => key !== "data" && key !== "apiKey")
-      .map((key) => key + "=" + postData[key])
+      .map((key) => `${key}=${postData[key]}`)
       .join(", ");
 
     this.debugLog(
       `LanguageTool request: uri=${document.uri.toString()} languageId=${
         document.languageId
       } url=${this.configManager.getUrl() || "--"} dataLength=${dataLength} ${
-        parameters ? "parameters=" + parameters : "parameters=--"
+        parameters ? `parameters=${parameters}` : "parameters=--"
       }`,
     );
   }
@@ -420,11 +422,11 @@ export class Linter implements CodeActionProvider {
     if (text.length <= maxLength) {
       return text;
     }
-    return text.slice(0, maxLength) + "...";
+    return `${text.slice(0, maxLength)}...`;
   }
 
   private formatPosition(position: Position): string {
-    return position.line + 1 + ":" + (position.character + 1);
+    return `${position.line + 1}:${position.character + 1}`;
   }
 
   // Call to LanguageTool Service
@@ -453,15 +455,16 @@ export class Linter implements CodeActionProvider {
       };
       Fetch.default(url, options)
         .then((res) => res.json())
-        .then((json: ILanguageToolResponse) => {
-          this.statusBarManager.setLtSoftware(json.software);
-          this.logLanguageToolResponse(document, json);
-          this.warnIfVariantMismatch(document, json);
-          this.suggest(document, json);
+        .then((json) => {
+          const response = json as ILanguageToolResponse;
+          this.statusBarManager.setLtSoftware(response.software);
+          this.logLanguageToolResponse(document, response);
+          this.warnIfVariantMismatch(document, response);
+          this.suggest(document, response);
         })
         .catch((err) => {
           Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(
-            "Error connecting to " + url,
+            `Error connecting to ${url}`,
           );
           Constants.EXTENSION_OUTPUT_CHANNEL.appendLine(err);
         });
@@ -578,7 +581,7 @@ export class Linter implements CodeActionProvider {
     category: string,
     text: string,
   ): boolean {
-    if (ignored == null || ignored.length == 0) return false;
+    if (ignored == null || ignored.length === 0) return false;
     let matchFound = false;
     ignored.forEach((item) => {
       if (matchFound) return;
@@ -632,7 +635,7 @@ export class Linter implements CodeActionProvider {
       lineIgnoreEdit.insert(
         document.uri,
         line.range.end,
-        " // @LT-IGNORE:" + ruleId + "(" + word + ")@",
+        ` // @LT-IGNORE:${ruleId}(${word})@`,
       );
       lineIgnoreAction.edit = lineIgnoreEdit;
       lineIgnoreAction.diagnostics = [];
@@ -648,7 +651,7 @@ export class Linter implements CodeActionProvider {
       fileIgnoreEdit.insert(
         document.uri,
         new Position(0, 0),
-        "// @LT-IGNORE-FILE:" + ruleId + "(" + word + ")@\n",
+        `// @LT-IGNORE-FILE:${ruleId}(${word})@\n`,
       );
       fileIgnoreAction.edit = fileIgnoreEdit;
       fileIgnoreAction.diagnostics = [];
@@ -658,8 +661,7 @@ export class Linter implements CodeActionProvider {
     if (this.configManager.isIgnoredWord(word)) {
       if (this.configManager.showIgnoredWordHints()) {
         if (this.configManager.isGloballyIgnoredWord(word)) {
-          const actionTitle: string =
-            "Remove '" + word + "' from always ignored words.";
+          const actionTitle: string = `Remove '${word}' from always ignored words.`;
           const action: CodeAction = new CodeAction(
             actionTitle,
             CodeActionKind.QuickFix,
@@ -674,8 +676,7 @@ export class Linter implements CodeActionProvider {
           actions.push(action);
         }
         if (this.configManager.isWorkspaceIgnoredWord(word)) {
-          const actionTitle: string =
-            "Remove '" + word + "' from Workspace ignored words.";
+          const actionTitle: string = `Remove '${word}' from Workspace ignored words.`;
           const action: CodeAction = new CodeAction(
             actionTitle,
             CodeActionKind.QuickFix,
@@ -691,7 +692,7 @@ export class Linter implements CodeActionProvider {
         }
       }
     } else {
-      const usrIgnoreActionTitle: string = "Always ignore '" + word + "'";
+      const usrIgnoreActionTitle: string = `Always ignore '${word}'`;
       const usrIgnoreAction: CodeAction = new CodeAction(
         usrIgnoreActionTitle,
         CodeActionKind.QuickFix,
@@ -705,8 +706,7 @@ export class Linter implements CodeActionProvider {
       usrIgnoreAction.diagnostics.push(diagnostic);
       actions.push(usrIgnoreAction);
       if (workspace !== undefined) {
-        const wsIgnoreActionTitle: string =
-          "Ignore '" + word + "' in Workspace";
+        const wsIgnoreActionTitle: string = `Ignore '${word}' in Workspace`;
         const wsIgnoreAction: CodeAction = new CodeAction(
           wsIgnoreActionTitle,
           CodeActionKind.QuickFix,
@@ -767,7 +767,7 @@ export class Linter implements CodeActionProvider {
   ): CodeAction[] {
     const actions: CodeAction[] = [];
     replacements.forEach((replacement: ILanguageToolReplacement) => {
-      const actionTitle: string = "'" + replacement.value + "'";
+      const actionTitle: string = `'${replacement.value}'`;
       const action: CodeAction = new CodeAction(
         actionTitle,
         CodeActionKind.QuickFix,
@@ -791,8 +791,7 @@ export class Linter implements CodeActionProvider {
     const rule: ILanguageToolMatch["rule"] | undefined = diagnostic.match?.rule;
     if (rule) {
       if (rule.id) {
-        const usrDisableRuleTitle: string =
-          "Disable '" + rule.description + "' (" + rule.id + ") Globally";
+        const usrDisableRuleTitle: string = `Disable '${rule.description}' (${rule.id}) Globally`;
         const usrDisableRuleAction: CodeAction = new CodeAction(
           usrDisableRuleTitle,
           CodeActionKind.QuickFix,
@@ -806,8 +805,7 @@ export class Linter implements CodeActionProvider {
         usrDisableRuleAction.diagnostics.push(diagnostic);
         actions.push(usrDisableRuleAction);
 
-        const lineIgnoreTitle: string =
-          "Ignore '" + rule.description + "' (" + rule.id + ") on this line";
+        const lineIgnoreTitle: string = `Ignore '${rule.description}' (${rule.id}) on this line`;
         const lineIgnoreAction: CodeAction = new CodeAction(
           lineIgnoreTitle,
           CodeActionKind.QuickFix,
@@ -817,15 +815,14 @@ export class Linter implements CodeActionProvider {
         lineIgnoreEdit.insert(
           document.uri,
           line.range.end,
-          " // @LT-IGNORE:" + rule.id + "@",
+          ` // @LT-IGNORE:${rule.id}@`,
         );
         lineIgnoreAction.edit = lineIgnoreEdit;
         lineIgnoreAction.diagnostics = [];
         lineIgnoreAction.diagnostics.push(diagnostic);
         actions.push(lineIgnoreAction);
 
-        const fileIgnoreTitle: string =
-          "Ignore '" + rule.description + "' (" + rule.id + ") in this file";
+        const fileIgnoreTitle: string = `Ignore '${rule.description}' (${rule.id}) in this file`;
         const fileIgnoreAction: CodeAction = new CodeAction(
           fileIgnoreTitle,
           CodeActionKind.QuickFix,
@@ -834,7 +831,7 @@ export class Linter implements CodeActionProvider {
         fileIgnoreEdit.insert(
           document.uri,
           new Position(0, 0),
-          "// @LT-IGNORE-FILE:" + rule.id + "@\n",
+          `// @LT-IGNORE-FILE:${rule.id}@\n`,
         );
         fileIgnoreAction.edit = fileIgnoreEdit;
         fileIgnoreAction.diagnostics = [];
@@ -842,8 +839,7 @@ export class Linter implements CodeActionProvider {
         actions.push(fileIgnoreAction);
 
         if (workspace !== undefined) {
-          const wsDisableRuleTitle: string =
-            "Disable '" + rule.description + "' (" + rule.id + ") in Workspace";
+          const wsDisableRuleTitle: string = `Disable '${rule.description}' (${rule.id}) in Workspace`;
           const wsDisableRuleAction: CodeAction = new CodeAction(
             wsDisableRuleTitle,
             CodeActionKind.QuickFix,
@@ -874,7 +870,7 @@ export class Linter implements CodeActionProvider {
         catLineIgnoreEdit.insert(
           document.uri,
           catLine.range.end,
-          " // @LT-IGNORE:category=" + rule.category.id + "@",
+          ` // @LT-IGNORE:category=${rule.category.id}@`,
         );
         catLineIgnoreAction.edit = catLineIgnoreEdit;
         catLineIgnoreAction.diagnostics = [];
@@ -895,15 +891,14 @@ export class Linter implements CodeActionProvider {
         catFileIgnoreEdit.insert(
           document.uri,
           new Position(0, 0),
-          "// @LT-IGNORE-FILE:category=" + rule.category.id + "@\n",
+          `// @LT-IGNORE-FILE:category=${rule.category.id}@\n`,
         );
         catFileIgnoreAction.edit = catFileIgnoreEdit;
         catFileIgnoreAction.diagnostics = [];
         catFileIgnoreAction.diagnostics.push(diagnostic);
         actions.push(catFileIgnoreAction);
 
-        const usrDisableCategoryTitle: string =
-          "Disable '" + rule.category.name + "' Globally";
+        const usrDisableCategoryTitle: string = `Disable '${rule.category.name}' Globally`;
         const usrDisableCategoryAction: CodeAction = new CodeAction(
           usrDisableCategoryTitle,
           CodeActionKind.QuickFix,
@@ -918,8 +913,7 @@ export class Linter implements CodeActionProvider {
         actions.push(usrDisableCategoryAction);
 
         if (workspace !== undefined) {
-          const wsDisableCategoryTitle: string =
-            "Disable '" + rule.category.name + "' in Workspace";
+          const wsDisableCategoryTitle: string = `Disable '${rule.category.name}' in Workspace`;
           const wsDisableCategoryAction: CodeAction = new CodeAction(
             wsDisableCategoryTitle,
             CodeActionKind.QuickFix,
@@ -945,16 +939,16 @@ export class Linter implements CodeActionProvider {
    * @param start
    */
   private getIgnoreList(
-    document: TextDocument,
+    _document: TextDocument,
     start: Position,
   ): IIgnoreItem[] {
     const line = start.line;
-    const res = Array<IIgnoreItem>();
+    const res: IIgnoreItem[] = [];
     this.ignoreList.forEach((item) => {
       if (
         item.scope === "file" ||
-        item.line == line ||
-        item.line == line - 1
+        item.line === line ||
+        item.line === line - 1
       ) {
         // all items of current or prev line
         res.push(item);
@@ -973,17 +967,14 @@ export class Linter implements CodeActionProvider {
     const fullText = document.getText();
     const matches = [
       ...fullText.matchAll(
-        new RegExp(
-          "@(LT-)?IGNORE(?<scope>-FILE)?:(?<spec>(?:rule=)?[_A-Z0-9]+(?:\\s+category=[_A-Z0-9]+)?|category=[_A-Z0-9]+)(\\((?<word>[^)]+)\\))?@",
-          "gm",
-        ),
+        /@(LT-)?IGNORE(?<scope>-FILE)?:(?<spec>(?:rule=)?[_A-Z0-9]+(?:\s+category=[_A-Z0-9]+)?|category=[_A-Z0-9]+)(\((?<word>[^)]+)\))?@/gm,
       ),
     ];
-    if (matches.length == 0) return [];
-    const res = Array<IIgnoreItem>();
+    if (matches.length === 0) return [];
+    const res: IIgnoreItem[] = [];
     matches.forEach((match: RegExpMatchArray) => {
       if (!match.groups) return;
-      const spec = match.groups["spec"] || "";
+      const spec = match.groups.spec || "";
       let ruleId: string | undefined;
       let category: string | undefined;
       if (spec.startsWith("category=")) {
@@ -995,16 +986,14 @@ export class Linter implements CodeActionProvider {
           : parts[0];
         category = parts[1];
       } else {
-        ruleId = spec.startsWith("rule=")
-          ? spec.slice("rule=".length)
-          : spec;
+        ruleId = spec.startsWith("rule=") ? spec.slice("rule=".length) : spec;
       }
       const item: IIgnoreItem = {
         line: document.positionAt(match.index as number).line,
-        scope: match.groups && match.groups["scope"] ? "file" : "line",
+        scope: match.groups?.scope ? "file" : "line",
         ruleId,
         category,
-        text: match.groups ? match.groups["word"] : undefined,
+        text: match.groups ? match.groups.word : undefined,
       };
       res.push(item);
     });

@@ -1,7 +1,7 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { glob } from "glob";
 import Mocha from "mocha";
-import * as fs from "fs";
-import * as path from "path";
 
 export function run(): Promise<void> {
   // Create the mocha test
@@ -25,7 +25,9 @@ export function run(): Promise<void> {
       });
 
     // Add files to the test suite
-    files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+    for (const f of files) {
+      mocha.addFile(path.resolve(testsRoot, f));
+    }
 
     try {
       // Run the mocha test

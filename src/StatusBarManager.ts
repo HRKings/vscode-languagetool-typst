@@ -14,8 +14,8 @@
  *   limitations under the License.
  */
 import * as vscode from "vscode";
-import { ConfigurationManager } from "./ConfigurationManager";
-import { ILanguageToolResponse } from "./Interfaces";
+import type { ConfigurationManager } from "./ConfigurationManager";
+import type { ILanguageToolResponse } from "./Interfaces";
 
 export class StatusBarManager implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;

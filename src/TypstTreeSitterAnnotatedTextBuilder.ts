@@ -14,9 +14,9 @@
  *   limitations under the License.
  */
 
-import { IAnnotatedtext, IAnnotation } from "annotatedtext";
-import * as fs from "fs";
-import { Language, Node, Parser } from "web-tree-sitter";
+import * as fs from "node:fs";
+import type { IAnnotatedtext, IAnnotation } from "annotatedtext";
+import { Language, type Node, Parser } from "web-tree-sitter";
 
 const PROSE_LEAF_TYPES = new Set(["text", "lquote", "rquote"]);
 const PARBREAK_TYPES = new Set(["parbreak"]);
@@ -43,9 +43,7 @@ const EXCLUDED_CALL_NAMES = new Set(["footnote"]);
 // Excluded markup nodes whose annotated-text projection should be a
 // specific Unicode glyph rather than empty/whitespace. Lets LanguageTool
 // see `…` for typst's `...` shorthand, etc.
-const INTERPRET_AS_MAP = new Map<string, string>([
-  ["ellipsis", "…"],
-]);
+const INTERPRET_AS_MAP = new Map<string, string>([["ellipsis", "…"]]);
 
 export class TypstTreeSitterAnnotatedTextBuilder {
   private static initPromise: Promise<void> | undefined;
@@ -53,22 +51,22 @@ export class TypstTreeSitterAnnotatedTextBuilder {
   private interpretOverrides = new Map<number, string>();
 
   public static async init(wasmPath: string): Promise<void> {
-    if (this.initPromise) {
-      return this.initPromise;
+    if (TypstTreeSitterAnnotatedTextBuilder.initPromise) {
+      return TypstTreeSitterAnnotatedTextBuilder.initPromise;
     }
-    this.initPromise = (async () => {
+    TypstTreeSitterAnnotatedTextBuilder.initPromise = (async () => {
       await Parser.init();
       const wasm = fs.readFileSync(wasmPath);
       const language = await Language.load(wasm);
       const parser = new Parser();
       parser.setLanguage(language);
-      this.parser = parser;
+      TypstTreeSitterAnnotatedTextBuilder.parser = parser;
     })();
-    return this.initPromise;
+    return TypstTreeSitterAnnotatedTextBuilder.initPromise;
   }
 
   public static isReady(): boolean {
-    return this.parser !== undefined;
+    return TypstTreeSitterAnnotatedTextBuilder.parser !== undefined;
   }
 
   public async build(text: string): Promise<IAnnotatedtext> {
@@ -77,20 +75,19 @@ export class TypstTreeSitterAnnotatedTextBuilder {
       throw new Error("TypstTreeSitterAnnotatedTextBuilder not initialized");
     }
 
-    const included: boolean[] = Array.from({ length: text.length }, () => false);
+    const included: boolean[] = Array.from(
+      { length: text.length },
+      () => false,
+    );
     this.interpretOverrides = new Map<number, string>();
     const tree = parser.parse(text);
-    if (tree && tree.rootNode) {
+    if (tree?.rootNode) {
       this.classify(tree.rootNode, included, text);
     }
     return this.buildAnnotatedText(text, included);
   }
 
-  private classify(
-    node: Node,
-    included: boolean[],
-    text: string,
-  ): void {
+  private classify(node: Node, included: boolean[], text: string): void {
     const type = node.type;
 
     if (PROSE_LEAF_TYPES.has(type)) {
@@ -153,7 +150,9 @@ export class TypstTreeSitterAnnotatedTextBuilder {
     let currentValue = included[0];
     for (let offset = 1; offset < text.length; offset++) {
       if (included[offset] !== currentValue) {
-        annotation.push(this.buildAnnotation(text, start, offset, currentValue));
+        annotation.push(
+          this.buildAnnotation(text, start, offset, currentValue),
+        );
         start = offset;
         currentValue = included[offset];
       }

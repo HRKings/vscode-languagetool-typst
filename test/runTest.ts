@@ -1,5 +1,6 @@
-import * as path from "path";
 // tslint:disable-next-line: no-implicit-dependencies
+
+import * as path from "node:path";
 import { runTests } from "@vscode/test-electron";
 
 async function main() {
@@ -20,7 +21,7 @@ async function main() {
       extensionTestsPath,
       launchArgs: [testWorkspace],
     });
-  } catch (err) {
+  } catch (_err) {
     // tslint:disable-next-line: no-console
     console.error("Failed to run tests");
     process.exit(1);

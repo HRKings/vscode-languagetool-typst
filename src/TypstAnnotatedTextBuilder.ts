@@ -14,14 +14,14 @@
  *   limitations under the License.
  */
 
-import { IAnnotatedtext, IAnnotation } from "annotatedtext";
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as typstParserModule from "@myriaddreamin/typst-ts-parser";
 import initTypstParser, {
-  TypstParser,
+  type TypstParser,
   TypstParserBuilder,
 } from "@myriaddreamin/typst-ts-parser";
-import * as typstParserModule from "@myriaddreamin/typst-ts-parser";
+import type { IAnnotatedtext, IAnnotation } from "annotatedtext";
 
 interface ITypstSemanticToken {
   offset: number;
@@ -108,7 +108,7 @@ export class TypstAnnotatedTextBuilder {
       return bundledPath;
     }
 
-    // oxlint-disable-next-line no-eval -- Keeps require available after webpack bundles this file.
+    // biome-ignore lint/security/noGlobalEval: Keeps require available after webpack bundles this file.
     const nodeRequire = eval("require") as NodeRequire;
     return nodeRequire.resolve("@myriaddreamin/typst-ts-parser/wasm");
   }
@@ -309,12 +309,16 @@ export class TypstAnnotatedTextBuilder {
     let currentValue = included[0];
     for (let offset = 1; offset < text.length; offset++) {
       if (included[offset] !== currentValue) {
-        annotation.push(this.buildAnnotation(text, start, offset, currentValue));
+        annotation.push(
+          this.buildAnnotation(text, start, offset, currentValue),
+        );
         start = offset;
         currentValue = included[offset];
       }
     }
-    annotation.push(this.buildAnnotation(text, start, text.length, currentValue));
+    annotation.push(
+      this.buildAnnotation(text, start, text.length, currentValue),
+    );
 
     return { annotation };
   }
@@ -358,7 +362,7 @@ export class TypstAnnotatedTextBuilder {
       !/\s/.test(previous) &&
       !/\s/.test(next)
     ) {
-      return lineBreaks + " ";
+      return `${lineBreaks} `;
     }
 
     return lineBreaks;
