@@ -71,7 +71,7 @@
     "tree-sitter-cli": "^0.25.10",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.2",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.58.1",
     "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",
