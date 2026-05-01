@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Build resources/tree-sitter-typst.wasm from a pinned uben0/tree-sitter-typst commit.
+# Build resources/tree-sitter-typst.wasm from the prose-focused grammar fork.
 # Requires: docker (tree-sitter-cli uses emscripten/emsdk:4.0.4 to build wasm).
 # tree-sitter-cli is pulled in via npm devDependencies.
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-GRAMMAR_REPO="https://github.com/uben0/tree-sitter-typst.git"
-GRAMMAR_REF="46cf4ded12ee974a70bf8457263b67ad7ee0379d"
+GRAMMAR_REPO="${GRAMMAR_REPO:-https://github.com/HRKings/tree-sitter-typst-prose.git}"
+GRAMMAR_REF="${GRAMMAR_REF:-prose-focus}"
 BUILD_DIR="$REPO_ROOT/build/grammar/tree-sitter-typst"
 OUTPUT="$REPO_ROOT/resources/tree-sitter-typst.wasm"
 TS_BIN="$REPO_ROOT/node_modules/.bin/tree-sitter"
@@ -24,8 +24,9 @@ fi
 
 (
   cd "$BUILD_DIR"
-  git fetch --depth=50 origin "$GRAMMAR_REF" || true
-  git checkout "$GRAMMAR_REF"
+  git remote set-url origin "$GRAMMAR_REPO"
+  git fetch --depth=50 origin "$GRAMMAR_REF"
+  git checkout --detach FETCH_HEAD
 )
 
 mkdir -p "$REPO_ROOT/resources"
