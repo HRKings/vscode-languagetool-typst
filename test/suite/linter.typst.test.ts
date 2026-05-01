@@ -251,6 +251,28 @@ suite("Linter Typst Test Suite", () => {
     );
   });
 
+  test("Linter should match Typst spelling ignore directives case-insensitively", () => {
+    const helper = linter as any;
+    const ignored = [
+      {
+        line: 0,
+        ruleId: "MORFOLOGIK_RULE_EN_US",
+        scope: "file" as const,
+        text: "WordThatDoesntexit",
+      },
+    ];
+
+    assert.equal(
+      helper.checkIfIgnored(
+        ignored,
+        "MORFOLOGIK_RULE_EN_US",
+        "wordthatdoesntexit",
+      ),
+      true,
+      "Expected spelling ignores to match regardless of case.",
+    );
+  });
+
   test("Linter should recognize file-wide Typst ignore directives", async () => {
     const document = await vscode.workspace.openTextDocument({
       content:

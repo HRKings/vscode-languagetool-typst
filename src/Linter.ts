@@ -573,11 +573,28 @@ export class Linter implements CodeActionProvider {
     let matchFound = false;
     ignored.forEach((item) => {
       if (matchFound) return;
-      if (item.ruleId == id && (!item.text || item.text == text)) {
+      if (
+        item.ruleId == id &&
+        this.matchesIgnoreText(id, item.text, text)
+      ) {
         matchFound = true;
       }
     });
     return matchFound;
+  }
+
+  private matchesIgnoreText(
+    ruleId: string,
+    ignoreText: string | undefined,
+    text: string,
+  ): boolean {
+    if (!ignoreText) {
+      return true;
+    }
+    if (Linter.isSpellingRule(ruleId)) {
+      return ignoreText.toLowerCase() === text.toLowerCase();
+    }
+    return ignoreText === text;
   }
 
   // Get CodeActions for Spelling Rules
