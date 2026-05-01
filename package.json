@@ -47,7 +47,7 @@
     "annotatedtext": "^0.7.0",
     "execa": "^9.6.1",
     "glob": "^13.0.0",
-    "node-fetch": "^2.7.0",
+    "node-fetch": "^3.3.2",
     "portfinder": "^1.0.38",
     "web-tree-sitter": "^0.25.10"
   },
