@@ -14,7 +14,7 @@
 = Introduction
 Typst is a markup-based #link("https://typst.app/")[typesetting system tyypo] designed to be moore intuitive than LaTeX.
 
-== 1. Subtitle with number
+== 1. Subbtitle with number
 
 // 3. Basic Formatting
 This text features *bold emphasis*, _italics_, and #underline[underlining].

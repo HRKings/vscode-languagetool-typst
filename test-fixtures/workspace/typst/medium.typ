@@ -14,7 +14,7 @@
   This paraagraph should  be cheecked by LanguageTul.
 ])
 
-- This paragraph should be cheecked by LanguageTool.
+- This paragraph shuld be cheecked by LanguageTool.
 - This paragraph should be cheecked by LanguageTool.
 
 - This paragraph should be cheecked by LanguageTool.
