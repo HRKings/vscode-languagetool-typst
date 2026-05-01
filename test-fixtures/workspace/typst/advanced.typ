@@ -33,6 +33,9 @@ def hello_typst():
     print("Powerful scripting built-in")
 ```
 
+== 2. Subtitle
+- And list right after
+
 // 6. Visuals & Tables
 #figure(
   table(

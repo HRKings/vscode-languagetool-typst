@@ -119,6 +119,24 @@ suite("Linter Typst Test Suite", () => {
     );
   });
 
+  test("Linter should exclude Typst list markers from checked prose", async () => {
+    const text: string = fs.readFileSync(
+      path.resolve(__dirname, testWorkspace + "/typst/advanced.typ"),
+      "utf8",
+    );
+    const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(text);
+    const checkedText = getCheckedText(actual);
+
+    assert.ok(
+      checkedText.includes("And list right after"),
+      "Expected Typst list item content to remain checkable.",
+    );
+    assert.ok(
+      !checkedText.includes("- And list right after"),
+      "Expected Typst list marker to stay out of checked prose.",
+    );
+  });
+
   test("Linter should preserve Typst apostrophes inside words", async () => {
     const text: string = fs.readFileSync(
       path.resolve(__dirname, testWorkspace + "/typst/medium.typ"),
