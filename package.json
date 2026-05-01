@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@myriaddreamin/typst-ts-parser": "^0.7.0-rc2",
-    "annotatedtext": "^0.7.0",
+    "annotatedtext": "^1.2.1",
     "execa": "^9.6.1",
     "glob": "^13.0.0",
     "node-fetch": "^2.7.0",
