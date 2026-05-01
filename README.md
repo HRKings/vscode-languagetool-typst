@@ -98,7 +98,7 @@ and packaging.
 ```sh
 bun install
 bun run compile
-bunx vsce package
+bunx vsce package --no-dependencies
 ```
 
 ## Configuration Notes

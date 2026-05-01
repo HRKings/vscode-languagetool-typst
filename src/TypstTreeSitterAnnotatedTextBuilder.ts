@@ -77,7 +77,7 @@ export class TypstTreeSitterAnnotatedTextBuilder {
       throw new Error("TypstTreeSitterAnnotatedTextBuilder not initialized");
     }
 
-    const included: boolean[] = new Array(text.length).fill(false);
+    const included: boolean[] = Array.from({ length: text.length }, () => false);
     this.interpretOverrides = new Map<number, string>();
     const tree = parser.parse(text);
     if (tree && tree.rootNode) {

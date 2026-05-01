@@ -40,41 +40,33 @@
     "main-dist": "json -I -f package.json -e 'this.main=\"./dist/extension.js\"'",
     "pretest": "bun run test-compile",
     "test": "node ./out/test/runTest.js && bun run main-dist",
-    "lint": "eslint ./src/",
-    "package": "bunx vsce package"
+    "lint": "oxlint ./src/",
+    "package": "bunx vsce package --no-dependencies"
   },
   "dependencies": {
     "@myriaddreamin/typst-ts-parser": "^0.7.0-rc2",
     "annotatedtext": "^0.7.0",
     "execa": "^9.6.1",
-    "glob": "^13.0.0",
+    "glob": "^13.0.6",
     "node-fetch": "^2.7.0",
     "portfinder": "^1.0.38",
     "web-tree-sitter": "^0.25.10"
   },
   "devDependencies": {
-    "@eslint/js": "^9.30.0",
-    "@types/eslint__js": "^8.42.3",
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.6.0",
-    "@types/node-fetch": "^2.6.11",
-    "@types/vscode": "^1.108.1",
-    "@types/webpack": "^5.28.5",
-    "@typescript-eslint/eslint-plugin": "^8.54.0",
-    "@typescript-eslint/parser": "^8.54.0",
+    "@types/node-fetch": "^2.6.13",
+    "@types/vscode": "^1.118.0",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.7.1",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-jsdoc": "^62.9.0",
+    "@vscode/vsce": "^3.9.1",
     "json": "^11.0.0",
     "mocha": "^11.7.5",
+    "oxlint": "^1.62.0",
     "tree-sitter-cli": "^0.25.10",
-    "ts-loader": "^9.5.2",
+    "ts-loader": "^9.5.7",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.2",
-    "typescript-eslint": "^8.58.1",
-    "webpack": "^5.104.1",
+    "typescript": "^6.0.3",
+    "webpack": "^5.106.2",
     "webpack-cli": "^6.0.1",
     "webpack-license-plugin": "^4.5.1"
   },
@@ -519,6 +511,6 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.108.1"
+    "vscode": "^1.118.0"
   }
 }

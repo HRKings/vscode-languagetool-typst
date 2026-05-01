@@ -108,6 +108,7 @@ export class TypstAnnotatedTextBuilder {
       return bundledPath;
     }
 
+    // oxlint-disable-next-line no-eval -- Keeps require available after webpack bundles this file.
     const nodeRequire = eval("require") as NodeRequire;
     return nodeRequire.resolve("@myriaddreamin/typst-ts-parser/wasm");
   }
