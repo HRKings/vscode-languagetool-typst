@@ -757,6 +757,23 @@ export class Linter implements CodeActionProvider {
         lineIgnoreAction.diagnostics.push(diagnostic);
         actions.push(lineIgnoreAction);
 
+        const fileIgnoreTitle: string =
+          "Ignore '" + rule.description + "' (" + rule.id + ") in this file";
+        const fileIgnoreAction: CodeAction = new CodeAction(
+          fileIgnoreTitle,
+          CodeActionKind.QuickFix,
+        );
+        const fileIgnoreEdit: WorkspaceEdit = new WorkspaceEdit();
+        fileIgnoreEdit.insert(
+          document.uri,
+          new Position(0, 0),
+          "// @LT-IGNORE-FILE:" + rule.id + "@\n",
+        );
+        fileIgnoreAction.edit = fileIgnoreEdit;
+        fileIgnoreAction.diagnostics = [];
+        fileIgnoreAction.diagnostics.push(diagnostic);
+        actions.push(fileIgnoreAction);
+
         if (workspace !== undefined) {
           const wsDisableRuleTitle: string =
             "Disable '" + rule.description + "' (" + rule.id + ") in Workspace";
@@ -824,7 +841,11 @@ export class Linter implements CodeActionProvider {
     const line = start.line;
     const res = Array<IIgnoreItem>();
     this.ignoreList.forEach((item) => {
-      if (item.line == line || item.line == line - 1) {
+      if (
+        item.scope === "file" ||
+        item.line == line ||
+        item.line == line - 1
+      ) {
         // all items of current or prev line
         res.push(item);
       }
@@ -843,7 +864,7 @@ export class Linter implements CodeActionProvider {
     const matches = [
       ...fullText.matchAll(
         new RegExp(
-          "@(LT-)?IGNORE:(?<id>[_A-Z0-9]+)(\\((?<word>[^)]+)\\))?@",
+          "@(LT-)?IGNORE(?<scope>-FILE)?:(?<id>[_A-Z0-9]+)(\\((?<word>[^)]+)\\))?@",
           "gm",
         ),
       ),
@@ -854,6 +875,7 @@ export class Linter implements CodeActionProvider {
       if (!match.groups) return;
       const item: IIgnoreItem = {
         line: document.positionAt(match.index as number).line,
+        scope: match.groups && match.groups["scope"] ? "file" : "line",
         ruleId: match.groups ? match.groups["id"] : "",
         text: match.groups ? match.groups["word"] : undefined,
       };

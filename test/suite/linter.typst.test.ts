@@ -171,6 +171,69 @@ suite("Linter Typst Test Suite", () => {
     );
   });
 
+  test("Linter should offer a file ignore quick fix for Typst rules", async () => {
+    const uri = Uri.file(
+      path.resolve(__dirname, testWorkspace + "/typst/advanced.typ"),
+    );
+    const document = await vscode.workspace.openTextDocument(uri);
+    const diagnostic = new Diagnostic(
+      new Range(new Position(36, 0), new Position(36, 1)),
+      "dash rule",
+      DiagnosticSeverity.Warning,
+    ) as Diagnostic & { match: ILanguageToolMatch };
+    diagnostic.source = "LanguageTool Typst";
+    diagnostic.match = buildLanguageToolMatch("DASH_RULE", "PUNCTUATION");
+    diagnostic.match.rule.description = "Dash rule";
+
+    const actions = linter.provideCodeActions(
+      document,
+      diagnostic.range,
+      { diagnostics: [diagnostic] } as never,
+      {} as never,
+    );
+    const fileIgnoreAction = actions.find(
+      (action) =>
+        action.title === "Ignore 'Dash rule' (DASH_RULE) in this file",
+    );
+
+    assert.ok(fileIgnoreAction, "Expected a file ignore quick fix.");
+    assert.deepEqual(
+      fileIgnoreAction?.edit?.get(document.uri)?.map((edit) => edit.newText),
+      ["// @LT-IGNORE-FILE:DASH_RULE@\n"],
+      "Expected the quick fix to insert a Typst file ignore comment.",
+    );
+  });
+
+  test("Linter should recognize file-wide Typst ignore directives", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      content:
+        "// @LT-IGNORE-FILE:DASH_RULE@\n== Subtitle\n- And list right after\n",
+      language: "typst",
+    });
+    const helper = linter as any;
+    const ignoreList = helper.buildIgnoreList(document) as Array<{
+      line: number;
+      ruleId: string;
+      scope: "line" | "file";
+    }>;
+    helper.ignoreList = ignoreList;
+    const fileIgnore = ignoreList.find(
+      (item) => item.ruleId === "DASH_RULE" && item.scope === "file",
+    );
+    const ignoredOnLaterLine = helper.getIgnoreList(
+      document,
+      new vscode.Position(2, 0),
+    ) as Array<{ ruleId: string; scope: "line" | "file" }>;
+
+    assert.ok(fileIgnore, "Expected a file-wide ignore directive to be parsed.");
+    assert.ok(
+      ignoredOnLaterLine.some(
+        (item) => item.ruleId === "DASH_RULE" && item.scope === "file",
+      ),
+      "Expected a file-wide ignore directive to apply to later lines.",
+    );
+  });
+
   test("Linter should preserve Typst apostrophes inside words", async () => {
     const text: string = fs.readFileSync(
       path.resolve(__dirname, testWorkspace + "/typst/medium.typ"),

@@ -157,9 +157,14 @@ in the sentence.
 The rules can be applied to the current line, for example at the end, or at the
 line before.
 
+To ignore a rule for the whole file, use:
+
+    // @LT-IGNORE-FILE:UPPERCASE_SENTENCE_START@
+
 Syntax:
 
     @LT-IGNORE:<rulename>(<text-match>)@
+    @LT-IGNORE-FILE:<rulename>@
 
 The and the `text-match` is optional.
 

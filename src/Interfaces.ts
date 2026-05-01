@@ -79,6 +79,8 @@ export interface ILanguageToolReplacement {
 export interface IIgnoreItem {
   // source line
   line: number;
+  // scope of the ignore item
+  scope: "line" | "file";
   // matching linter rule
   ruleId: string;
   // optional matching text
