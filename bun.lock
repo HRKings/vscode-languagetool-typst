@@ -23,7 +23,7 @@
         "json": "^11.0.0",
         "mocha": "^11.7.5",
         "oxlint": "^1.62.0",
-        "tree-sitter-cli": "^0.25.10",
+        "tree-sitter-cli": "^0.26.8",
         "ts-loader": "^9.5.7",
         "ts-node": "^10.9.2",
         "typescript": "^6.0.3",
@@ -906,7 +906,7 @@
 
     "tr46": ["tr46@0.0.3", "", {}, "sha1-gYT9NH2snNwYWZLzpmIuFLnZq2o="],
 
-    "tree-sitter-cli": ["tree-sitter-cli@0.25.10", "", { "bin": { "tree-sitter": "cli.js" } }, "sha512-KoebQguKMCIghisEOdA372TIbrUl0kdnfZ9YQIBRAeOvNSKe85XbU4LuFW7hduRUwJj0rAG7pX5wo9sZhbBF1g=="],
+    "tree-sitter-cli": ["tree-sitter-cli@0.26.8", "", { "bin": { "tree-sitter": "cli.js" } }, "sha512-teQFMF5V/g8aIdakZ0M/eZoedCM3MuBt1JuDOICLloA2hy7QfeOInb99U6wiML4qXcBHWREwf0U1TWzw7p67YA=="],
 
     "ts-loader": ["ts-loader@9.5.7", "", { "dependencies": { "chalk": "^4.1.0", "enhanced-resolve": "^5.0.0", "micromatch": "^4.0.0", "semver": "^7.3.4", "source-map": "^0.7.4" }, "peerDependencies": { "typescript": "*", "webpack": "^5.0.0" } }, "sha512-/ZNrKgA3K3PtpMYOC71EeMWIloGw3IYEa5/t1cyz2r5/PyUwTXGzYJvcD3kfUvmhlfpz1rhV8B2O6IVTQ0avsg=="],
 
