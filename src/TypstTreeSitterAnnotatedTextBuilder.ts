@@ -186,6 +186,9 @@ export class TypstTreeSitterAnnotatedTextBuilder {
 
   private interpretMarkup(text: string, start: number, end: number): string {
     const slice = text.slice(start, end);
+    if (end === text.length && /^[^\S\n]*\n+[^\S\n]*$/.test(slice)) {
+      return "";
+    }
     if (!/\S/.test(slice)) {
       return slice.replace(/[^\S\n]+/g, " ");
     }

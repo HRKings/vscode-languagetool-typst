@@ -136,6 +136,40 @@ suite("Linter Typst Test Suite", () => {
     );
   });
 
+  test("Linter should not interpret trailing Typst newlines after quoted prose", async () => {
+    const actual: IAnnotatedtext =
+      await linter.buildAnnotatedTypst('"Test."\n');
+
+    assert.equal(
+      getInterpretedText(actual),
+      '"Test."',
+      "Expected terminal newline markup not to be sent to LanguageTool.",
+    );
+    assert.deepEqual(actual.annotation, [
+      {
+        offset: { end: 7, start: 0 },
+        text: '"Test."',
+      },
+      {
+        interpretAs: "",
+        markup: "\n",
+        offset: { end: 8, start: 7 },
+      },
+    ]);
+  });
+
+  test("Linter should preserve internal Typst paragraph breaks", async () => {
+    const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(
+      '"One."\n\n"Two."\n',
+    );
+
+    assert.equal(
+      getInterpretedText(actual),
+      '"One."\n\n"Two."',
+      "Expected internal paragraph breaks to remain visible to LanguageTool.",
+    );
+  });
+
   test("Linter should offer a line ignore quick fix for Typst rules", async () => {
     const uri = Uri.file(
       path.resolve(__dirname, `${testWorkspace}/typst/advanced.typ`),
