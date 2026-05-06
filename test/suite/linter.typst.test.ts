@@ -159,14 +159,36 @@ suite("Linter Typst Test Suite", () => {
   });
 
   test("Linter should preserve internal Typst paragraph breaks", async () => {
-    const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(
-      '"One."\n\n"Two."\n',
-    );
+    const actual: IAnnotatedtext =
+      await linter.buildAnnotatedTypst('"One."\n\n"Two."\n');
 
     assert.equal(
       getInterpretedText(actual),
       '"One."\n\n"Two."',
       "Expected internal paragraph breaks to remain visible to LanguageTool.",
+    );
+  });
+
+  test("Linter should isolate Typst headings from following body text", async () => {
+    const actual: IAnnotatedtext =
+      await linter.buildAnnotatedTypst("== Test\nTest\n");
+
+    assert.equal(
+      getInterpretedText(actual),
+      " Test\n\nTest",
+      "Expected heading line endings to become paragraph boundaries for LanguageTool.",
+    );
+  });
+
+  test("Linter should preserve spacing around skipped Typst inline raw spans", async () => {
+    const actual: IAnnotatedtext = await linter.buildAnnotatedTypst(
+      "this is a `test` (or test) and more text\n",
+    );
+
+    assert.equal(
+      getInterpretedText(actual),
+      "this is a (or test) and more text",
+      "Expected skipped inline raw spans not to delete the source space before parentheses.",
     );
   });
 
@@ -179,7 +201,10 @@ suite("Linter Typst Test Suite", () => {
     const diagnostics = linter.getTypstMarkerSpacingDiagnostics(document);
 
     assert.equal(diagnostics.length, 1);
-    assert.equal(diagnostics[0].message, "Use one space after the Typst marker.");
+    assert.equal(
+      diagnostics[0].message,
+      "Use one space after the Typst marker.",
+    );
     assert.equal(diagnostics[0].code, "TYPST_MARKER_SPACING");
     assert.equal(diagnostics[0].severity, DiagnosticSeverity.Information);
     assert.deepEqual(

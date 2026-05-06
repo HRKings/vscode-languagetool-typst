@@ -190,13 +190,32 @@ export class TypstTreeSitterAnnotatedTextBuilder {
       return "";
     }
     if (!/\S/.test(slice)) {
-      return slice.replace(/[^\S\n]+/g, " ");
+      const normalizedWhitespace = slice.replace(/[^\S\n]+/g, " ");
+      if (this.followsHeadingLine(text, start)) {
+        return normalizedWhitespace.includes("\n\n")
+          ? normalizedWhitespace
+          : normalizedWhitespace.replace("\n", "\n\n");
+      }
+      return normalizedWhitespace;
     }
     const newlines = slice.match(/\n/g)?.join("") ?? "";
     if (newlines.length > 0) {
       return newlines;
     }
+    if (/[^\S\n]/.test(slice)) {
+      return " ";
+    }
     return this.isWordCharacter(text[end]) ? " " : "";
+  }
+
+  private followsHeadingLine(text: string, offset: number): boolean {
+    if (text[offset] !== "\n") {
+      return false;
+    }
+
+    const lineStart = text.lastIndexOf("\n", offset - 1) + 1;
+    const line = text.slice(lineStart, offset);
+    return /^[^\S\n]*={1,6}[^\S\n]+/.test(line);
   }
 
   private isWordCharacter(character: string | undefined): boolean {
