@@ -20,3 +20,8 @@ raw block should not be checked
 $x + y should not be checked$
 
 // This comment should not be checked.
+
+== Test
+Test
+
+`test` (or test)
