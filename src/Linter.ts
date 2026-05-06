@@ -52,6 +52,9 @@ interface ITypstBuilder {
 }
 
 const TREE_SITTER_FLAG = process.env.LTL_TREE_SITTER !== "0";
+const TYPST_MARKER_SPACING_RULE_ID = "TYPST_MARKER_SPACING";
+const TYPST_MARKER_SPACING_PATTERN =
+  /^(\s*)(?:[-+*•—]|\d+[.)])([ \t]{2,})(?=\S)/u;
 
 class LTDiagnostic extends Diagnostic {
   match?: ILanguageToolMatch;
@@ -530,12 +533,43 @@ export class Linter implements CodeActionProvider {
         diagnostic.severity = DiagnosticSeverity.Hint;
       }
     });
+    if (document.languageId === Constants.LANGUAGE_ID_TYPST) {
+      diagnostics.push(...this.getTypstMarkerSpacingDiagnostics(document));
+    }
     this.diagnosticCollection.set(document.uri, diagnostics);
     this.debugLog(
       `Diagnostics set: uri=${document.uri.toString()} diagnostics=${
         diagnostics.length
       }`,
     );
+  }
+
+  public getTypstMarkerSpacingDiagnostics(
+    document: TextDocument,
+  ): LTDiagnostic[] {
+    const diagnostics: LTDiagnostic[] = [];
+    for (let lineIndex = 0; lineIndex < document.lineCount; lineIndex++) {
+      const line = document.lineAt(lineIndex);
+      const match = TYPST_MARKER_SPACING_PATTERN.exec(line.text);
+      if (!match) {
+        continue;
+      }
+
+      const spacingStart = match[0].length - match[2].length;
+      const spacingEnd = spacingStart + match[2].length;
+      const diagnostic = new LTDiagnostic(
+        new Range(
+          new Position(lineIndex, spacingStart),
+          new Position(lineIndex, spacingEnd),
+        ),
+        "Use one space after the Typst marker.",
+        DiagnosticSeverity.Information,
+      );
+      diagnostic.source = Constants.EXTENSION_DIAGNOSTIC_SOURCE;
+      diagnostic.code = TYPST_MARKER_SPACING_RULE_ID;
+      diagnostics.push(diagnostic);
+    }
+    return diagnostics;
   }
 
   public resolveDiagnosticSeverity(

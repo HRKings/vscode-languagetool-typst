@@ -170,6 +170,33 @@ suite("Linter Typst Test Suite", () => {
     );
   });
 
+  test("Linter should flag extra spaces after Typst prose markers", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      content: '  —  "this is a typpo".\n— "this is fine".\n',
+      language: "typst",
+    });
+
+    const diagnostics = linter.getTypstMarkerSpacingDiagnostics(document);
+
+    assert.equal(diagnostics.length, 1);
+    assert.equal(diagnostics[0].message, "Use one space after the Typst marker.");
+    assert.equal(diagnostics[0].code, "TYPST_MARKER_SPACING");
+    assert.equal(diagnostics[0].severity, DiagnosticSeverity.Information);
+    assert.deepEqual(
+      diagnostics[0].range,
+      new Range(new Position(0, 3), new Position(0, 5)),
+    );
+  });
+
+  test("Linter should not flag ordinary Typst double spaces as marker spacing", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      content: "This paragraph should  still be left to LanguageTool.\n",
+      language: "typst",
+    });
+
+    assert.deepEqual(linter.getTypstMarkerSpacingDiagnostics(document), []);
+  });
+
   test("Linter should offer a line ignore quick fix for Typst rules", async () => {
     const uri = Uri.file(
       path.resolve(__dirname, `${testWorkspace}/typst/advanced.typ`),
