@@ -203,6 +203,9 @@ export class TypstTreeSitterAnnotatedTextBuilder {
       return newlines;
     }
     if (/[^\S\n]/.test(slice)) {
+      if (this.isClosingPunctuation(text[end])) {
+        return "";
+      }
       return " ";
     }
     return this.isWordCharacter(text[end]) ? " " : "";
@@ -220,5 +223,9 @@ export class TypstTreeSitterAnnotatedTextBuilder {
 
   private isWordCharacter(character: string | undefined): boolean {
     return character !== undefined && /[\p{L}\p{N}]/u.test(character);
+  }
+
+  private isClosingPunctuation(character: string | undefined): boolean {
+    return character !== undefined && /[.,;:!?)}\]]/.test(character);
   }
 }

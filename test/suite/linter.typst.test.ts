@@ -192,6 +192,17 @@ suite("Linter Typst Test Suite", () => {
     );
   });
 
+  test("Linter should not leave spaces before punctuation after skipped Typst inline raw spans", async () => {
+    const actual: IAnnotatedtext =
+      await linter.buildAnnotatedTypst("And `Test`.\n");
+
+    assert.equal(
+      getInterpretedText(actual),
+      "And.",
+      "Expected skipped inline raw spans before punctuation not to leave dangling spaces.",
+    );
+  });
+
   test("Linter should flag extra spaces after Typst prose markers", async () => {
     const document = await vscode.workspace.openTextDocument({
       content: '  —  "this is a typpo".\n— "this is fine".\n',

@@ -24,4 +24,6 @@ $x + y should not be checked$
 == Test
 Test
 
-this is a `test` (or test) and more text
+This is a `test` (or test) and more text
+
+And `Test`.
